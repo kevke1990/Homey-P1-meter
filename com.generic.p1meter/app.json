@@ -1,6 +1,6 @@
 {
   "id": "com.generic.p1meter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -54,7 +54,14 @@
       "pair": [
         {
           "id": "list_devices",
-          "template": "list_devices"
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
         }
       ]
     }
