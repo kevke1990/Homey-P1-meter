@@ -137,7 +137,8 @@
       ],
       "pair": [
         {
-          "id": "configure"
+          "id": "configure_p1",
+          "template": "html"
         }
       ]
     }
