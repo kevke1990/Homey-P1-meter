@@ -6,13 +6,15 @@ class GenericP1MeterApp extends Homey.App {
   async onInit() {
     this.log('Generic P1 Meter App is gestart');
 
-    // Automatisch het apparaat aanmaken als het nog niet bestaat
-    this.ensureDeviceCreated();
+    // Wacht 2 seconden zodat alle drivers gegarandeerd zijn geïnitialiseerd
+    setTimeout(() => {
+      this.ensureDeviceCreated();
+    }, 2000);
   }
 
   async ensureDeviceCreated() {
     try {
-      const driver = this.homey.drivers.getDriver('p1_dongle');
+      const driver = await this.homey.drivers.getDriver('p1_dongle');
       const devices = driver.getDevices();
 
       if (devices.length === 0) {
