@@ -45,21 +45,26 @@
                     return;
                 }
 
-                // Stuur de ingevulde data naar de 'save_config' handler in driver.js
-                Homey.emit('save_config', { ip: ipInput, interval: intervalInput })
-                    .then(function(deviceParams) {
-                        // Driver heeft het goedgekeurd, maak het apparaat aan!
-                        return Homey.createDevice(deviceParams);
-                    })
-                    .then(function() {
-                        // Sluit het scherm af
-                        return Homey.done();
-                    })
-                    .catch(function(err) {
-                        // Toon foutmelding op het scherm als er iets misgaat
-                        errorMsg.innerText = 'Fout: ' + (err.message || err);
+                // Hier zat het pijnpunt: we moeten een callback (err, result) gebruiken!
+                Homey.emit('save_config', { ip: ipInput, interval: intervalInput }, function(err, deviceParams) {
+                    if (err) {
+                        errorMsg.innerText = 'Fout vanuit driver: ' + (err.message || err);
                         errorMsg.style.display = 'block';
+                        return;
+                    }
+
+                    // Ook createDevice eist een callback
+                    Homey.createDevice(deviceParams, function(err2, result) {
+                        if (err2) {
+                            errorMsg.innerText = 'Fout bij toevoegen: ' + (err2.message || err2);
+                            errorMsg.style.display = 'block';
+                            return;
+                        }
+                        
+                        // Succes! Sluit het scherm af.
+                        Homey.done();
                     });
+                });
             });
         }
     </script>
