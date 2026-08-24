@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <!-- These scripts are required by Homey SDK for pairing views -->
   <script src="/homey.js" data-origin="core"></script>
+</head>
+<body>
   <style>
+    /* Basic styling for the pairing view */
     .form-group {
       margin-bottom: 1em;
     }
@@ -34,8 +38,7 @@
       display: none;
     }
   </style>
-</head>
-<body>
+
   <h2>Configure P1 Dongle</h2>
   <p>Please enter the IP address of your Wi-Fi P1 Dongle (e.g., Chargee Sparky) on your local network.</p>
 
@@ -58,12 +61,7 @@
     const pollIntervalInput = document.getElementById('pollInterval');
     const errorMsg = document.getElementById('errorMsg');
 
-    function showError(message) {
-      errorMsg.textContent = message;
-      errorMsg.style.display = 'block';
-    }
-
-    saveBtn.addEventListener('click', async function () {
+    saveBtn.addEventListener('click', function () {
       errorMsg.style.display = 'none';
       errorMsg.textContent = '';
 
@@ -87,20 +85,32 @@
         return;
       }
 
-      try {
-        // Emit the save event to the driver (handled in driver.js -> session.setHandler('save_settings'))
-        const result = await Homey.emit('save_settings', {
+      const deviceId = 'p1_' + ipAddress.replace(/\./g, '_');
+      const device = {
+        name: 'P1 Meter (' + ipAddress + ')',
+        data: {
+          id: deviceId
+        },
+        settings: {
           ipAddress: ipAddress,
           pollInterval: pollInterval
-        });
+        }
+      };
 
-        // Create the device with the result from the driver
-        await Homey.createDevice(result);
+      // Create the device directly from the frontend payload
+      Homey.createDevice(device, function (err, result) {
+        if (err) {
+          showError('Error creating device: ' + (err.message || err));
+          return;
+        }
         Homey.done();
-      } catch (err) {
-        showError('Error: ' + (err.message || err));
-      }
+      });
     });
+
+    function showError(message) {
+      errorMsg.textContent = message;
+      errorMsg.style.display = 'block';
+    }
   </script>
 </body>
 </html>

@@ -107,6 +107,34 @@
           }
         }
       },
+      "settings": [
+        {
+          "type": "text",
+          "id": "ipAddress",
+          "value": "",
+          "label": {
+            "en": "IP Address",
+            "nl": "IP Adres"
+          },
+          "hint": {
+            "en": "The local IP address of the P1 dongle.",
+            "nl": "Het lokale IP adres van de P1 dongle."
+          }
+        },
+        {
+          "type": "number",
+          "id": "pollInterval",
+          "value": 10,
+          "label": {
+            "en": "Polling Interval (seconds)",
+            "nl": "Polling Interval (seconden)"
+          },
+          "hint": {
+            "en": "How often to fetch data from the dongle.",
+            "nl": "Hoe vaak data van de dongle moet worden opgehaald."
+          }
+        }
+      ],
       "pair": [
         {
           "id": "settings"
