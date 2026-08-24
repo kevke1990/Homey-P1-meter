@@ -6,7 +6,7 @@ class P1DongleDriver extends Homey.Driver {
   async onInit() {
     this.log('P1 Dongle Driver is opgestart');
 
-    // Wacht even tot de driver volledig is geladen en maak het apparaat dan direct aan
+    // Wacht even tot de driver geladen is
     setTimeout(() => {
       this.autoCreateDevice();
     }, 1000);
@@ -17,9 +17,10 @@ class P1DongleDriver extends Homey.Driver {
       const devices = this.getDevices();
 
       if (devices.length === 0) {
-        this.log('Geen apparaten gevonden, Chargee Sparky automatisch aanmaken...');
+        this.log('Geen apparaten gevonden, Chargee Sparky automatisch aanmaken via driver...');
 
-        await this.homey.drivers.getDriver('p1_dongle').createDevice({
+        // De juiste SDK v3 methode binnen de driver klasse zelf
+        await this.createDevice({
           name: 'Chargee Sparky P1 Meter',
           data: {
             id: 'sparky_p1_192.168.8.224'
@@ -31,7 +32,7 @@ class P1DongleDriver extends Homey.Driver {
           }
         });
 
-        this.log('Chargee Sparky is succesvol automatisch toegevoegd aan Homey!');
+        this.log('Chargee Sparky is succesvol automatisch toegevoegd!');
       } else {
         this.log('Apparaat bestaat al in deze driver.');
       }
