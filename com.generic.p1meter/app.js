@@ -6,7 +6,7 @@ class GenericP1MeterApp extends Homey.App {
   async onInit() {
     this.log('Generic P1 Meter App is gestart');
 
-    // Wacht 2 seconden zodat alles is geladen
+    // Wacht even zodat alles is geladen
     setTimeout(() => {
       this.ensureDeviceCreated();
     }, 2000);
@@ -18,11 +18,10 @@ class GenericP1MeterApp extends Homey.App {
       const devices = driver.getDevices();
 
       if (devices.length === 0) {
-        this.log('Geen P1 meter gevonden, automatische aanmaak starten via homey.drivers...');
+        this.log('Geen P1 meter gevonden, automatische aanmaak starten via driver...');
         
-        // Correcte SDK v3 methode om een apparaat toe te voegen via de driver ID
-        await this.homey.drivers.createDevice({
-          driverId: 'p1_dongle',
+        // Correcte SDK v3 manier om een apparaat aan te maken via de driver instantie
+        await driver.createDevice({
           name: 'P1 Meter (Chargee Sparky)',
           data: {
             id: 'sparky_p1_192.168.8.224'
