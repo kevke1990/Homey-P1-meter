@@ -53,11 +53,8 @@
       ],
       "pair": [
         {
-          "id": "connect",
-          "template": "settings",
-          "navigation": {
-            "next": "add_device"
-          }
+          "id": "list_devices",
+          "template": "list_devices"
         },
         {
           "id": "add_device",
