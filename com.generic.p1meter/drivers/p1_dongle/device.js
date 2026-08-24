@@ -84,7 +84,7 @@ class P1DongleDevice extends Homey.Device {
     }
   }
 
-  processTelegram(telegram) {
+processTelegram(telegram) {
     try {
       this.setAvailable().catch(this.error);
 
@@ -94,6 +94,7 @@ class P1DongleDevice extends Homey.Device {
         return match ? parseFloat(match[1]) : null;
       };
 
+      // 1. Actueel vermogen (Watts)
       const powerImportKW = getValue('1-0:1\\.7\\.0');
       const powerExportKW = getValue('1-0:2\\.7\\.0');
 
@@ -104,23 +105,22 @@ class P1DongleDevice extends Homey.Device {
         this.setCapabilityValue('measure_power.returned', Math.round(powerExportKW * 1000)).catch(this.error);
       }
 
+      // 2. Totale meterstanden (kWh) - T1 + T2 bij elkaar opgeteld voor Homey's hoofdmeter
       const t1Consumed = getValue('1-0:1\\.8\\.1');
       const t2Consumed = getValue('1-0:1\\.8\\.2');
       const t1Produced = getValue('1-0:2\\.8\\.1');
       const t2Produced = getValue('1-0:2\\.8\\.2');
 
-      if (t1Consumed !== null) this.setCapabilityValue('meter_consumed_t1', t1Consumed).catch(this.error);
-      if (t2Consumed !== null) this.setCapabilityValue('meter_consumed_t2', t2Consumed).catch(this.error);
-      if (t1Produced !== null) this.setCapabilityValue('meter_produced_t1', t1Produced).catch(this.error);
-      if (t2Produced !== null) this.setCapabilityValue('meter_produced_t2', t2Produced).catch(this.error);
-
       if (t1Consumed !== null && t2Consumed !== null) {
-        this.setCapabilityValue('meter_power', t1Consumed + t2Consumed).catch(this.error);
+        const totalConsumed = t1Consumed + t2Consumed;
+        this.setCapabilityValue('meter_power', totalConsumed).catch(this.error);
       }
       if (t1Produced !== null && t2Produced !== null) {
-        this.setCapabilityValue('meter_power.returned', t1Produced + t2Produced).catch(this.error);
+        const totalProduced = t1Produced + t2Produced;
+        this.setCapabilityValue('meter_power.returned', totalProduced).catch(this.error);
       }
 
+      // 3. Gas (m3)
       const gasMatch = telegram.match(/0-[0-9]:24\.2\.1\([^)]+\)\(([^)]+)\)/);
       if (gasMatch) {
         const gasValue = parseFloat(gasMatch[1]);
@@ -133,6 +133,5 @@ class P1DongleDevice extends Homey.Device {
       this.error('Fout bij parsen DSMR telegram:', err);
     }
   }
-}
 
 module.exports = P1DongleDevice;
