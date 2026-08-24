@@ -16,70 +16,23 @@
   "author": {
     "name": "Jules"
   },
-  "capabilities": {
-    "meter_consumed_t1": {
-      "type": "number",
-      "title": {
-        "en": "Total Consumed (Tariff 1)",
-        "nl": "Totaal Verbruik (Tarief 1)"
-      },
-      "units": {
-        "en": "kWh"
-      },
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "decimals": 3
-    },
-    "meter_consumed_t2": {
-      "type": "number",
-      "title": {
-        "en": "Total Consumed (Tariff 2)",
-        "nl": "Totaal Verbruik (Tarief 2)"
-      },
-      "units": {
-        "en": "kWh"
-      },
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "decimals": 3
-    },
-    "meter_produced_t1": {
-      "type": "number",
-      "title": {
-        "en": "Total Produced (Tariff 1)",
-        "nl": "Totaal Geproduceerd (Tarief 1)"
-      },
-      "units": {
-        "en": "kWh"
-      },
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "decimals": 3
-    },
-    "meter_produced_t2": {
-      "type": "number",
-      "title": {
-        "en": "Total Produced (Tariff 2)",
-        "nl": "Totaal Geproduceerd (Tarief 2)"
-      },
-      "units": {
-        "en": "kWh"
-      },
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "decimals": 3
-    }
-  },
+  "capabilities": [
+    "measure_power",
+    "measure_power.returned",
+    "meter_power",
+    "meter_power.returned",
+    "meter_gas",
+    "meter_consumed_t1",
+    "meter_consumed_t2",
+    "meter_produced_t1",
+    "meter_produced_t2"
+  ],
   "drivers": [
     {
       "id": "p1_dongle",
       "name": {
-        "en": "Wi-Fi P1 Dongle",
-        "nl": "Wi-Fi P1 Dongle"
+        "en": "Chargee Sparky P1 Meter",
+        "nl": "Chargee Sparky P1 Meter"
       },
       "class": "sensor",
       "capabilities": [
@@ -93,20 +46,6 @@
         "meter_produced_t1",
         "meter_produced_t2"
       ],
-      "capabilitiesOptions": {
-        "meter_power": {
-          "title": {
-            "en": "Total Consumed",
-            "nl": "Totaal Verbruikt"
-          }
-        },
-        "meter_power.returned": {
-          "title": {
-            "en": "Total Returned",
-            "nl": "Totaal Teruggeleverd"
-          }
-        }
-      },
       "settings": [
         {
           "type": "text",
@@ -125,25 +64,12 @@
             "en": "TCP Port",
             "nl": "TCP Poort"
           }
-        },
-        {
-          "type": "number",
-          "id": "polling_interval",
-          "value": 10,
-          "label": {
-            "en": "Polling Interval (seconds)",
-            "nl": "Polling Interval (seconden)"
-          }
         }
       ],
       "pair": [
         {
           "id": "list_devices",
           "template": "list_devices"
-        },
-        {
-          "id": "add_devices",
-          "template": "add_devices"
         }
       ]
     }
