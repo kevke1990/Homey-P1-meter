@@ -110,7 +110,7 @@
       "settings": [
         {
           "type": "text",
-          "id": "ipAddress",
+          "id": "ip",
           "value": "",
           "label": {
             "en": "IP Address",
@@ -123,7 +123,7 @@
         },
         {
           "type": "number",
-          "id": "pollInterval",
+          "id": "polling_interval",
           "value": 10,
           "label": {
             "en": "Polling Interval (seconds)",

@@ -28,7 +28,7 @@ class P1DongleDevice extends Homey.Device {
    * Called when device settings are updated
    */
   async onSettings({ oldSettings, newSettings, changedKeys }) {
-    if (changedKeys.includes('ipAddress') || changedKeys.includes('pollInterval')) {
+    if (changedKeys.includes('ip') || changedKeys.includes('polling_interval')) {
       this.log('Settings changed, restarting polling');
       this.stopPolling();
       this.setupPolling();
@@ -37,27 +37,27 @@ class P1DongleDevice extends Homey.Device {
 
   setupPolling() {
     const settings = this.getSettings();
-    const pollInterval = settings.pollInterval || 10; // in seconds
+    const polling_interval = settings.polling_interval || 10; // in seconds
 
     // Poll immediately
     this.pollDevice();
 
     // Then set interval
-    this.pollIntervalId = this.homey.setInterval(() => {
+    this.polling_intervalId = this.homey.setInterval(() => {
       this.pollDevice();
-    }, pollInterval * 1000);
+    }, polling_interval * 1000);
   }
 
   stopPolling() {
-    if (this.pollIntervalId) {
-      this.homey.clearInterval(this.pollIntervalId);
-      this.pollIntervalId = null;
+    if (this.polling_intervalId) {
+      this.homey.clearInterval(this.polling_intervalId);
+      this.polling_intervalId = null;
     }
   }
 
   async pollDevice() {
     const settings = this.getSettings();
-    const ip = settings.ipAddress;
+    const ip = settings.ip;
 
     if (!ip) {
       this.log('No IP address configured');

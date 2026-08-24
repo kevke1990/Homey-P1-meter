@@ -1,103 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- These scripts are required by Homey SDK for pairing views -->
-  <script src="/homey.js" data-origin="core"></script>
-  <style>
-    /* Basic styling for the pairing view */
-    .form-group {
-      margin-bottom: 1em;
-    }
-    label {
-      display: block;
-      margin-bottom: 0.5em;
-      font-weight: bold;
-    }
-    input[type="text"], input[type="number"] {
-      width: 100%;
-      padding: 0.5em;
-      box-sizing: border-box;
-    }
-    .button {
-      background-color: #007aff;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-size: 1em;
-      border-radius: 5px;
-    }
-    .button:hover {
-      background-color: #0056b3;
-    }
-  </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!-- Verplicht voor Homey communicatie -->
+    <script type="text/javascript" src="/homey.js" data-origin="view"></script>
+    <style>
+        body { padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .field { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #333; }
+        input { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .button { background-color: #007aff; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
+        .button:active { background-color: #005bb5; }
+        .error { color: #d90000; font-size: 14px; margin-top: 15px; display: none; background: #ffe6e6; padding: 10px; border-radius: 6px; }
+    </style>
 </head>
 <body>
-  <h2>Configure P1 Dongle</h2>
-  <p>Please enter the IP address of your Wi-Fi P1 Dongle (e.g., Chargee Sparky) on your local network.</p>
 
-  <div class="form-group">
-    <label for="ipAddress">IP Address</label>
-    <input type="text" id="ipAddress" placeholder="e.g. 192.168.1.50" required />
-  </div>
+    <div class="field">
+        <label for="ip">IP Address</label>
+        <input type="text" id="ip" placeholder="bijv. 192.168.8.224" value="" autocomplete="off" />
+    </div>
 
-  <div class="form-group">
-    <label for="pollInterval">Polling Interval (seconds)</label>
-    <input type="number" id="pollInterval" value="10" min="1" required />
-  </div>
+    <div class="field">
+        <label for="interval">Polling Interval (seconden)</label>
+        <input type="number" id="interval" placeholder="10" value="10" />
+    </div>
 
-  <button id="saveBtn" class="button">Save</button>
+    <button id="save" class="button">Save</button>
+    <div id="error-msg" class="error"></div>
 
-  <script type="text/javascript">
-    Homey.ready(function () {
-      const saveBtn = document.getElementById('saveBtn');
-      const ipAddressInput = document.getElementById('ipAddress');
-      const pollIntervalInput = document.getElementById('pollInterval');
+    <script type="text/javascript">
+        // Dit is de enige juiste manier waarop Homey SDK v3 wacht tot de UI klaar is
+        function onHomeyReady(Homey) {
 
-      saveBtn.addEventListener('click', function () {
-        const ipAddress = ipAddressInput.value.trim();
-        const pollInterval = parseInt(pollIntervalInput.value, 10);
+            const saveBtn = document.getElementById('save');
+            const errorMsg = document.getElementById('error-msg');
+            const ipInput = document.getElementById('ip');
+            const intervalInput = document.getElementById('interval');
 
-        if (!ipAddress) {
-          Homey.alert('Please enter an IP address.');
-          return;
+            // Vertel Homey dat we klaar zijn om de pagina te tonen
+            Homey.ready();
+
+            // Koppel de klik-actie aan de Save knop
+            saveBtn.addEventListener('click', function() {
+                // Reset de foutmelding
+                errorMsg.style.display = 'none';
+                errorMsg.innerText = '';
+
+                const ip = ipInput.value.trim();
+                const interval = parseInt(intervalInput.value.trim(), 10);
+
+                if (!ip) {
+                    errorMsg.innerText = 'Vul aub een geldig IP adres in.';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+
+                if (isNaN(interval) || interval < 1) {
+                    errorMsg.innerText = 'Vul een geldige interval in (bijv. 10).';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+
+                // Maak het apparaat-object aan om naar de driver te sturen
+                const device = {
+                    name: 'P1 Meter (' + ip + ')',
+                    data: {
+                        id: ip // Het IP adres wordt de unieke ID van het apparaat
+                    },
+                    settings: {
+                        ip: ip,
+                        polling_interval: interval
+                    }
+                };
+
+                // Stuur het apparaat naar de Homey backend (driver.js)
+                Homey.createDevice(device)
+                    .then(function() {
+                        // Sluit het scherm succesvol af
+                        return Homey.done();
+                    })
+                    .catch(function(err) {
+                        // Als driver.js faalt, tonen we de foutmelding op het scherm
+                        errorMsg.innerText = 'Fout bij toevoegen: ' + err.message;
+                        errorMsg.style.display = 'block';
+                    });
+            });
         }
-
-        // Basic IP validation
-        const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
-        if (!ipRegex.test(ipAddress)) {
-          Homey.alert('Please enter a valid IP address.');
-          return;
-        }
-
-        if (isNaN(pollInterval) || pollInterval < 1) {
-          Homey.alert('Please enter a valid polling interval (> 0).');
-          return;
-        }
-
-        const deviceId = 'p1_' + ipAddress.replace(/\./g, '_');
-
-        const device = {
-          name: 'P1 Meter (' + ipAddress + ')',
-          data: {
-            id: deviceId
-          },
-          settings: {
-            ipAddress: ipAddress,
-            pollInterval: pollInterval
-          }
-        };
-
-        // Create the device using Promise chaining
-        Homey.createDevice(device)
-          .then(function() {
-            return Homey.done();
-          })
-          .catch(function(err) {
-            Homey.alert(err.message || err);
-          });
-      });
-    });
-  </script>
+    </script>
 </body>
 </html>
