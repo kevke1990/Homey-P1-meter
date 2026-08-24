@@ -141,16 +141,16 @@ class P1DongleDevice extends Homey.Device {
       const totalProducedT2 = data.total_power_export_t2_kwh;
 
       if (totalConsumedT1 !== undefined) {
-        this.setCapabilityValue('meter_power.consumed.t1', Number(totalConsumedT1)).catch(this.error);
+        this.setCapabilityValue('meter_power.consumed_t1', Number(totalConsumedT1)).catch(this.error);
       }
       if (totalConsumedT2 !== undefined) {
-        this.setCapabilityValue('meter_power.consumed.t2', Number(totalConsumedT2)).catch(this.error);
+        this.setCapabilityValue('meter_power.consumed_t2', Number(totalConsumedT2)).catch(this.error);
       }
       if (totalProducedT1 !== undefined) {
-        this.setCapabilityValue('meter_power.produced.t1', Number(totalProducedT1)).catch(this.error);
+        this.setCapabilityValue('meter_power.produced_t1', Number(totalProducedT1)).catch(this.error);
       }
       if (totalProducedT2 !== undefined) {
-        this.setCapabilityValue('meter_power.produced.t2', Number(totalProducedT2)).catch(this.error);
+        this.setCapabilityValue('meter_power.produced_t2', Number(totalProducedT2)).catch(this.error);
       }
 
       // Calculate total overall consumed/produced for generic meter_power
