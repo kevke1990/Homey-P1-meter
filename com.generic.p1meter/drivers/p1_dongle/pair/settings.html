@@ -2,10 +2,9 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <!-- Verplicht voor Homey communicatie -->
     <script type="text/javascript" src="/homey.js" data-origin="view"></script>
     <style>
-        body { padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { padding: 20px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         .field { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #333; }
         input { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
@@ -18,71 +17,47 @@
 
     <div class="field">
         <label for="ip">IP Address</label>
-        <input type="text" id="ip" placeholder="bijv. 192.168.8.224" value="" autocomplete="off" />
+        <input type="text" id="ip" placeholder="bijv. 192.168.8.224" autocomplete="off" />
     </div>
 
     <div class="field">
         <label for="interval">Polling Interval (seconden)</label>
-        <input type="number" id="interval" placeholder="10" value="10" />
+        <input type="number" id="interval" value="10" />
     </div>
 
     <button id="save" class="button">Save</button>
     <div id="error-msg" class="error"></div>
 
     <script type="text/javascript">
-        // Dit is de enige juiste manier waarop Homey SDK v3 wacht tot de UI klaar is
         function onHomeyReady(Homey) {
-
-            const saveBtn = document.getElementById('save');
-            const errorMsg = document.getElementById('error-msg');
-            const ipInput = document.getElementById('ip');
-            const intervalInput = document.getElementById('interval');
-
-            // Vertel Homey dat we klaar zijn om de pagina te tonen
             Homey.ready();
 
-            // Koppel de klik-actie aan de Save knop
-            saveBtn.addEventListener('click', function() {
-                // Reset de foutmelding
+            document.getElementById('save').addEventListener('click', function() {
+                var errorMsg = document.getElementById('error-msg');
                 errorMsg.style.display = 'none';
-                errorMsg.innerText = '';
 
-                const ip = ipInput.value.trim();
-                const interval = parseInt(intervalInput.value.trim(), 10);
+                var ipInput = document.getElementById('ip').value.trim();
+                var intervalInput = document.getElementById('interval').value.trim();
 
-                if (!ip) {
+                if (!ipInput) {
                     errorMsg.innerText = 'Vul aub een geldig IP adres in.';
                     errorMsg.style.display = 'block';
                     return;
                 }
 
-                if (isNaN(interval) || interval < 1) {
-                    errorMsg.innerText = 'Vul een geldige interval in (bijv. 10).';
-                    errorMsg.style.display = 'block';
-                    return;
-                }
-
-                // Maak het apparaat-object aan om naar de driver te sturen
-                const device = {
-                    name: 'P1 Meter (' + ip + ')',
-                    data: {
-                        id: ip // Het IP adres wordt de unieke ID van het apparaat
-                    },
-                    settings: {
-                        ip: ip,
-                        polling_interval: interval
-                    }
-                };
-
-                // Stuur het apparaat naar de Homey backend (driver.js)
-                Homey.createDevice(device)
+                // Stuur de ingevulde data naar de 'save_config' handler in driver.js
+                Homey.emit('save_config', { ip: ipInput, interval: intervalInput })
+                    .then(function(deviceParams) {
+                        // Driver heeft het goedgekeurd, maak het apparaat aan!
+                        return Homey.createDevice(deviceParams);
+                    })
                     .then(function() {
-                        // Sluit het scherm succesvol af
+                        // Sluit het scherm af
                         return Homey.done();
                     })
                     .catch(function(err) {
-                        // Als driver.js faalt, tonen we de foutmelding op het scherm
-                        errorMsg.innerText = 'Fout bij toevoegen: ' + err.message;
+                        // Toon foutmelding op het scherm als er iets misgaat
+                        errorMsg.innerText = 'Fout: ' + (err.message || err);
                         errorMsg.style.display = 'block';
                     });
             });
