@@ -1,0 +1,117 @@
+{
+  "id": "com.generic.p1meter",
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "name": {
+    "en": "Generic P1 Meter",
+    "nl": "Generieke P1 Meter"
+  },
+  "description": {
+    "en": "Connects generic Wi-Fi P1 Dongles to Homey",
+    "nl": "Verbindt generieke Wi-Fi P1 Dongles met Homey"
+  },
+  "category": "energy",
+  "permissions": [],
+  "author": {
+    "name": "Jules"
+  },
+  "capabilities": {
+    "meter_power.consumed.t1": {
+      "type": "number",
+      "title": {
+        "en": "Total Consumed (Tariff 1)",
+        "nl": "Totaal Verbruik (Tarief 1)"
+      },
+      "units": {
+        "en": "kWh"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "decimals": 3
+    },
+    "meter_power.consumed.t2": {
+      "type": "number",
+      "title": {
+        "en": "Total Consumed (Tariff 2)",
+        "nl": "Totaal Verbruik (Tarief 2)"
+      },
+      "units": {
+        "en": "kWh"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "decimals": 3
+    },
+    "meter_power.produced.t1": {
+      "type": "number",
+      "title": {
+        "en": "Total Produced (Tariff 1)",
+        "nl": "Totaal Geproduceerd (Tarief 1)"
+      },
+      "units": {
+        "en": "kWh"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "decimals": 3
+    },
+    "meter_power.produced.t2": {
+      "type": "number",
+      "title": {
+        "en": "Total Produced (Tariff 2)",
+        "nl": "Totaal Geproduceerd (Tarief 2)"
+      },
+      "units": {
+        "en": "kWh"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "decimals": 3
+    }
+  },
+  "drivers": [
+    {
+      "id": "p1_dongle",
+      "name": {
+        "en": "Wi-Fi P1 Dongle",
+        "nl": "Wi-Fi P1 Dongle"
+      },
+      "class": "sensor",
+      "capabilities": [
+        "measure_power",
+        "measure_power.returned",
+        "meter_power",
+        "meter_power.returned",
+        "meter_gas",
+        "meter_power.consumed.t1",
+        "meter_power.consumed.t2",
+        "meter_power.produced.t1",
+        "meter_power.produced.t2"
+      ],
+      "capabilitiesOptions": {
+        "meter_power": {
+          "title": {
+            "en": "Total Consumed",
+            "nl": "Totaal Verbruikt"
+          }
+        },
+        "meter_power.returned": {
+          "title": {
+            "en": "Total Returned",
+            "nl": "Totaal Teruggeleverd"
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "settings"
+        }
+      ]
+    }
+  ]
+}
