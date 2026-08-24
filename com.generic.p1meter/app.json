@@ -135,7 +135,12 @@
           }
         }
       ],
-      "pair": [ ]
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices"
+        }
+      ]
     }
   ]
 }
