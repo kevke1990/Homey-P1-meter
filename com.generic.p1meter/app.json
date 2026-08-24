@@ -55,10 +55,6 @@
         {
           "id": "list_devices",
           "template": "list_devices"
-        },
-        {
-          "id": "add_device",
-          "template": "add_device"
         }
       ]
     }
