@@ -17,7 +17,7 @@
     "name": "Jules"
   },
   "capabilities": {
-    "meter_power.consumed_t1": {
+    "meter_consumed_t1": {
       "type": "number",
       "title": {
         "en": "Total Consumed (Tariff 1)",
@@ -31,7 +31,7 @@
       "uiComponent": "sensor",
       "decimals": 3
     },
-    "meter_power.consumed_t2": {
+    "meter_consumed_t2": {
       "type": "number",
       "title": {
         "en": "Total Consumed (Tariff 2)",
@@ -45,7 +45,7 @@
       "uiComponent": "sensor",
       "decimals": 3
     },
-    "meter_power.produced_t1": {
+    "meter_produced_t1": {
       "type": "number",
       "title": {
         "en": "Total Produced (Tariff 1)",
@@ -59,7 +59,7 @@
       "uiComponent": "sensor",
       "decimals": 3
     },
-    "meter_power.produced_t2": {
+    "meter_produced_t2": {
       "type": "number",
       "title": {
         "en": "Total Produced (Tariff 2)",
@@ -88,10 +88,10 @@
         "meter_power",
         "meter_power.returned",
         "meter_gas",
-        "meter_power.consumed_t1",
-        "meter_power.consumed_t2",
-        "meter_power.produced_t1",
-        "meter_power.produced_t2"
+        "meter_consumed_t1",
+        "meter_consumed_t2",
+        "meter_produced_t1",
+        "meter_produced_t2"
       ],
       "capabilitiesOptions": {
         "meter_power": {
