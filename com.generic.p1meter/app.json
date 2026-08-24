@@ -16,17 +16,6 @@
   "author": {
     "name": "Jules"
   },
-  "capabilities": [
-    "measure_power",
-    "measure_power.returned",
-    "meter_power",
-    "meter_power.returned",
-    "meter_gas",
-    "meter_consumed_t1",
-    "meter_consumed_t2",
-    "meter_produced_t1",
-    "meter_produced_t2"
-  ],
   "drivers": [
     {
       "id": "p1_dongle",
