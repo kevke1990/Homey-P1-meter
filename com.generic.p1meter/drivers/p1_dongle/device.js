@@ -27,7 +27,7 @@ class P1DongleDevice extends Homey.Device {
   connectTcp() {
     const settings = this.getSettings();
     const host = settings.ip || '192.168.8.224';
-    const port = settings.port || 3602; // Chargee Sparky DSMR TCP poort
+    const port = settings.port || 3602;
 
     this.log(`Verbinden met Chargee Sparky op ${host}:${port}...`);
 
@@ -52,7 +52,6 @@ class P1DongleDevice extends Homey.Device {
       this.log('TCP verbinding gesloten. Over 10 seconden opnieuw verbinden...');
       this.setUnavailable('Verbinding verbroken').catch(this.error);
       
-      // Automatisch herverbinden na 10 seconden
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = setTimeout(() => {
         this.connectTcp();
@@ -69,21 +68,17 @@ class P1DongleDevice extends Homey.Device {
   }
 
   parseTelegramBuffer() {
-    // DSMR telegrammen beginnen met '/' en eindigen met '!' gevolgd door een CRC checksum
     let endIndex;
     while ((endIndex = this.buffer.indexOf('!')) !== -1) {
-      // Check of het hele telegram binnen is (inclusief checksum achter '!')
       if (this.buffer.length >= endIndex + 5) {
         const telegram = this.buffer.substring(0, endIndex + 5);
-        this.buffer = this.buffer.substring(endIndex + 5); // Rest bewaren
-        
+        this.buffer = this.buffer.substring(endIndex + 5);
         this.processTelegram(telegram);
       } else {
-        break; // Wacht op meer data voor dit telegram
+        break;
       }
     }
 
-    // Voorkom dat de buffer oneindig groeit als er geen '/' wordt gevonden
     if (this.buffer.length > 65536) {
       this.buffer = '';
     }
@@ -93,16 +88,14 @@ class P1DongleDevice extends Homey.Device {
     try {
       this.setAvailable().catch(this.error);
 
-      // Helper functie om waardes uit DSMR OBIS codes te halen (bijv. 1-0:1.7.0(00.423*kW))
       const getValue = (obisCode) => {
         const regex = new RegExp(obisCode + '\\(([^\\*\\)]+)(?:\\*([a-zA-Z]+))?\\)');
         const match = telegram.match(regex);
         return match ? parseFloat(match[1]) : null;
       };
 
-      // 1. Actueel vermogen (Watts) omzetten naar W
-      const powerImportKW = getValue('1-0:1\\.7\\.0'); // Huidig verbruik
-      const powerExportKW = getValue('1-0:2\\.7\\.0'); // Huidige teruglevering
+      const powerImportKW = getValue('1-0:1\\.7\\.0');
+      const powerExportKW = getValue('1-0:2\\.7\\.0');
 
       if (powerImportKW !== null) {
         this.setCapabilityValue('measure_power', Math.round(powerImportKW * 1000)).catch(this.error);
@@ -111,7 +104,6 @@ class P1DongleDevice extends Homey.Device {
         this.setCapabilityValue('measure_power.returned', Math.round(powerExportKW * 1000)).catch(this.error);
       }
 
-      // 2. Cumulatieve standen (kWh) voor T1 en T2
       const t1Consumed = getValue('1-0:1\\.8\\.1');
       const t2Consumed = getValue('1-0:1\\.8\\.2');
       const t1Produced = getValue('1-0:2\\.8\\.1');
@@ -129,7 +121,6 @@ class P1DongleDevice extends Homey.Device {
         this.setCapabilityValue('meter_power.returned', t1Produced + t2Produced).catch(this.error);
       }
 
-      // 3. Gas (m3) - OBIS code verschilt per slimme meter (vaak 0-1:24.2.1 of m-bus)
       const gasMatch = telegram.match(/0-[0-9]:24\.2\.1\([^)]+\)\(([^)]+)\)/);
       if (gasMatch) {
         const gasValue = parseFloat(gasMatch[1]);
