@@ -1,33 +1,36 @@
-CHARGEE SPARKY v1.4.0
+CHARGEE SPARKY v1.4.1
 
-HOMEY INSIGHTS EDITION
+FIXED: p1_grid_import_power 404
 
-The screenshot showed that the P1 device did not expose the Insights entry
-point. v1.4.0 makes Insights explicit rather than relying only on Homey's
-automatic Insights generation for system capabilities.
+Root cause in v1.4.0:
+The TCP connection was started before addCapability() had completed.
+The P1 stream could therefore deliver a telegram while the new custom
+Insight capabilities were still being added. setCapabilityValue() then
+returned HTTP 404 "Invalid Capability".
 
-Added five read-only, device-level Insight capabilities:
-- p1_grid_import_power      Netafname (W)
-- p1_grid_export_power      Teruglevering (W)
-- p1_imported_energy        Afgenomen energie (kWh)
-- p1_exported_energy        Teruggeleverde energie (kWh)
-- p1_gas_meter              Gasmeterstand (m³)
-
-Each custom capability has "insights": true and is synchronized from the
-existing P1 system capabilities. The original system capabilities remain
-intact for Homey Energy, including cumulative import/export configuration.
+v1.4.1:
+- waits for Insight capability migration before opening TCP
+- adds each missing capability sequentially
+- confirms a capability exists before every Insight write
+- safely skips a capability if Homey could not add it
+- custom Insight capabilities explicitly use uiComponent=sensor
+- Insights remain enabled
+- Homey Energy configuration remains unchanged
+- v1.3.4 fast widget architecture remains unchanged
 
 IMPORTANT:
-Existing Homey devices do not automatically receive newly declared
-capabilities. v1.4.0 attempts to migrate them using addCapability(), but
-for the cleanest Homey UI/Insights result remove the old Chargee Sparky
-device and pair it again after installing v1.4.0.
+Because these are new capabilities, after updating the app:
+1. Stop the old app runner.
+2. Start v1.4.1.
+3. Open the existing Chargee Sparky device.
+4. Wait 5-10 seconds for capability migration.
+5. If the device still does not show the Insights entry, delete and pair
+   the P1 device once more. New driver capabilities are not automatically
+   added to existing devices; the migration code handles this, but re-pairing
+   is the clean fallback.
 
-Then:
+Validate:
   homey app validate --level publish
+
+Run:
   homey app run
-
-After re-pairing:
-Devices -> long press Chargee Sparky P1 Meter -> Insights
-
-You should see the five Chargee Sparky metrics as device-level Insights.

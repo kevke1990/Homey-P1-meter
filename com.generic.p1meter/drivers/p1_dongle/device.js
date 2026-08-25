@@ -29,13 +29,11 @@ class P1DongleDevice extends Homey.Device {
       updatedAt: 0,
     };
 
-    // v1.4: explicitly enable device-level Insights capabilities. These are
-    // read-only mirrors of the standard P1 capabilities. They exist because
-    // some Homey versions/devices don't expose the Insights entry point for
-    // sub-capabilities consistently after an app update.
-    this.ensureInsightCapabilities().catch(err =>
-      this.error('Insight capabilities:', err)
-    );
+    // v1.4.1: IMPORTANT — wait for custom Insight capabilities to exist
+    // before starting the P1 TCP stream. In v1.4.0 the TCP stream could
+    // deliver a telegram before addCapability() had finished, causing:
+    // "Invalid Capability: p1_grid_import_power (404)".
+    await this.ensureInsightCapabilities();
 
     // Explicitly apply the Homey Energy configuration to the paired device.
     // The driver manifest contains the same configuration for newly paired devices.
@@ -139,12 +137,17 @@ class P1DongleDevice extends Homey.Device {
 
     for (const capability of capabilities) {
       if (!this.hasCapability(capability)) {
-        await this.addCapability(capability);
+        try {
+          this.log(`Insight capability toevoegen: ${capability}`);
+          await this.addCapability(capability);
+          this.log(`Insight capability toegevoegd: ${capability}`);
+        } catch (err) {
+          this.error(`Kon capability ${capability} niet toevoegen:`, err);
+        }
       }
     }
 
-    // Seed immediately from existing system values so Insights has a value
-    // even before the next DSMR telegram arrives.
+    // Only write to capabilities that are confirmed to exist.
     const pairs = [
       ['p1_grid_import_power', 'measure_power'],
       ['p1_grid_export_power', 'measure_power.returned'],
@@ -154,12 +157,28 @@ class P1DongleDevice extends Homey.Device {
     ];
 
     for (const [target, source] of pairs) {
+      if (!this.hasCapability(target)) {
+        this.error(`Capability ${target} is niet aanwezig; overslaan.`);
+        continue;
+      }
+
       const value = this.getCapabilityValue(source);
       if (typeof value === 'number' && Number.isFinite(value)) {
-        await this.setCapabilityValue(target, value).catch(err =>
-          this.error(`${target}:`, err)
-        );
+        try {
+          await this.setCapabilityValue(target, value);
+        } catch (err) {
+          this.error(`${target}:`, err);
+        }
       }
+    }
+  }
+
+  async setInsightValue(capability, value) {
+    if (!this.hasCapability(capability)) return;
+    try {
+      await this.setCapabilityValue(capability, value);
+    } catch (err) {
+      this.error(`${capability}:`, err);
     }
   }
 
@@ -210,8 +229,7 @@ class P1DongleDevice extends Homey.Device {
         this.lastCapabilityValues.measure_power = powerW;
         this.setCapabilityValue('measure_power', powerW)
           .catch(err => this.error('measure_power:', err));
-        this.setCapabilityValue('p1_grid_import_power', powerW)
-          .catch(err => this.error('p1_grid_import_power:', err));
+        this.setInsightValue('p1_grid_import_power', powerW);
       }
 
       if (returnedW !== null &&
@@ -221,8 +239,7 @@ class P1DongleDevice extends Homey.Device {
         this.lastCapabilityValues['measure_power.returned'] = returnedW;
         this.setCapabilityValue('measure_power.returned', returnedW)
           .catch(err => this.error('measure_power.returned:', err));
-        this.setCapabilityValue('p1_grid_export_power', returnedW)
-          .catch(err => this.error('p1_grid_export_power:', err));
+        this.setInsightValue('p1_grid_export_power', returnedW);
       }
 
       // Cumulative meters are only written periodically. Homey Insights does
@@ -235,8 +252,7 @@ class P1DongleDevice extends Homey.Device {
           this.lastCapabilityValues.meter_power = totalIn;
           this.setCapabilityValue('meter_power', totalIn)
             .catch(err => this.error('meter_power:', err));
-          this.setCapabilityValue('p1_imported_energy', totalIn)
-            .catch(err => this.error('p1_imported_energy:', err));
+          this.setInsightValue('p1_imported_energy', totalIn);
         }
 
         if (totalOut !== null &&
@@ -244,8 +260,7 @@ class P1DongleDevice extends Homey.Device {
           this.lastCapabilityValues['meter_power.returned'] = totalOut;
           this.setCapabilityValue('meter_power.returned', totalOut)
             .catch(err => this.error('meter_power.returned:', err));
-          this.setCapabilityValue('p1_exported_energy', totalOut)
-            .catch(err => this.error('p1_exported_energy:', err));
+          this.setInsightValue('p1_exported_energy', totalOut);
         }
 
         if (gas !== null && Number.isFinite(gas) &&
@@ -253,8 +268,7 @@ class P1DongleDevice extends Homey.Device {
           this.lastCapabilityValues.meter_gas = gas;
           this.setCapabilityValue('meter_gas', gas)
             .catch(err => this.error('meter_gas:', err));
-          this.setCapabilityValue('p1_gas_meter', gas)
-            .catch(err => this.error('p1_gas_meter:', err));
+          this.setInsightValue('p1_gas_meter', gas);
         }
       }
 
