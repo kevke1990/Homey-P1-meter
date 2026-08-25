@@ -18,6 +18,9 @@ class P1DongleDevice extends Homey.Device {
     this.lastReturnedPowerUpdateAt = 0;
     this.lastMeterUpdateAt = 0;
     this.lastGasUpdateAt = 0;
+    this.firstTelegramProcessed = false;
+    this.lastInsightPowerUpdateAt = 0;
+    this.lastInsightMeterUpdateAt = 0;
 
     // Keep the live values in memory for the widget/API.
     this.liveData = {
@@ -38,7 +41,42 @@ class P1DongleDevice extends Homey.Device {
       cumulativeExportedCapability: 'meter_power.returned',
     }).catch(err => this.error('setEnergy:', err));
 
+    // v1.4.3: properly declared custom Insight capabilities.
+    await this.ensureInsightCapabilities();
+
     this.connectTcp();
+  }
+
+  async ensureInsightCapabilities() {
+    const capabilities = [
+      'p1_grid_import_power',
+      'p1_grid_export_power',
+      'p1_imported_energy',
+      'p1_exported_energy',
+      'p1_gas_meter',
+    ];
+
+    for (const capability of capabilities) {
+      if (!this.hasCapability(capability)) {
+        try {
+          this.log(`Insights capability toevoegen: ${capability}`);
+          await this.addCapability(capability);
+          this.log(`Insights capability toegevoegd: ${capability}`);
+        } catch (err) {
+          this.error(`Kon Insights capability ${capability} niet toevoegen:`, err);
+        }
+      }
+    }
+  }
+
+  async setInsightValue(capability, value) {
+    if (!this.hasCapability(capability)) return;
+    if (typeof value !== 'number' || !Number.isFinite(value)) return;
+    try {
+      await this.setCapabilityValue(capability, value);
+    } catch (err) {
+      this.error(`${capability}:`, err);
+    }
   }
 
   async onDeleted() {
@@ -150,6 +188,11 @@ class P1DongleDevice extends Homey.Device {
       const powerW = importKw !== null ? Math.max(0, Math.round(importKw * 1000)) : null;
       const returnedW = exportKw !== null ? Math.max(0, Math.round(exportKw * 1000)) : null;
 
+      if (!this.firstTelegramProcessed) {
+        this.firstTelegramProcessed = true;
+        this.log(`Eerste geldige DSMR-telegram ontvangen: import=${powerW}W export=${returnedW}W importMeter=${totalIn}kWh exportMeter=${totalOut}kWh gas=${gas}m3`);
+      }
+
       // Always keep the in-memory live state current. The widget can use
       // capability values, while this state prevents unnecessary Homey writes.
       if (powerW !== null) this.liveData.powerW = powerW;
@@ -203,6 +246,21 @@ class P1DongleDevice extends Homey.Device {
           this.setCapabilityValue('meter_gas', gas)
             .catch(err => this.error('meter_gas:', err));
         }
+      }
+
+      // Explicit custom Insight capabilities. The first valid telegram
+      // therefore creates the first Insight event; later writes are throttled.
+      if (powerW !== null && (now - this.lastInsightPowerUpdateAt >= POWER_INTERVAL)) {
+        this.lastInsightPowerUpdateAt = now;
+        this.setInsightValue('p1_grid_import_power', powerW);
+        if (returnedW !== null) this.setInsightValue('p1_grid_export_power', returnedW);
+      }
+
+      if (now - this.lastInsightMeterUpdateAt >= METER_INTERVAL) {
+        this.lastInsightMeterUpdateAt = now;
+        if (totalIn !== null) this.setInsightValue('p1_imported_energy', totalIn);
+        if (totalOut !== null) this.setInsightValue('p1_exported_energy', totalOut);
+        if (gas !== null && Number.isFinite(gas)) this.setInsightValue('p1_gas_meter', gas);
       }
 
       // IMPORTANT: do NOT call setAvailable() on every telegram.

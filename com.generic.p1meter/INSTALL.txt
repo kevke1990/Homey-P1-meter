@@ -1,52 +1,14 @@
-CHARGEE SPARKY v1.4.2
+CHARGEE SPARKY v1.4.3
 
-IMPORTANT: v1.4.2 replaces the broken v1.4.0/v1.4.1 Insights experiment.
+Insights are now backed by five properly declared custom number capabilities
+with insights=true. They are migrated to existing devices with addCapability()
+and populated from the P1 telegram. The standard Homey Energy capabilities
+remain unchanged.
 
-ROOT CAUSE
-v1.4.0/v1.4.1 tried to add custom capabilities such as
-p1_grid_import_power dynamically. Homey returned:
-  Invalid Capability ... statusCode: 404
+After starting, the log should show:
+  Insights capability toevoegen: ...
+  Insights capability toegevoegd: ...
+  Eerste geldige DSMR-telegram ontvangen: ...
 
-The official Homey model is simpler for this P1 meter:
-the existing system capabilities measure_power, meter_power and meter_gas
-already support Insights. The driver manifest explicitly keeps Insights
-enabled with preventInsights=false.
-
-v1.4.2 therefore:
-- removes ALL p1_grid_* custom capabilities
-- removes all dynamic addCapability() Insight migration code
-- keeps the stable v1.3.4 P1 TCP driver
-- keeps the fast widget
-- keeps Homey Energy import/export configuration
-- explicitly enables Insights on the five standard P1 capabilities
-- keeps clear Dutch/English capability titles
-- avoids any 404 capability errors
-
-INSTALL
-1. Stop the old runner with CTRL+C.
-2. Replace the app directory with this v1.4.2 package.
-3. Run:
-     homey app validate --level publish
-4. Then:
-     homey app run
-
-DO NOT delete the device yet.
-The existing device already contains the standard capabilities.
-
-INSIGHTS
-The relevant Homey Insights data comes from:
-- measure_power
-- measure_power.returned
-- meter_power
-- meter_power.returned
-- meter_gas
-
-Homey automatically generates Insights for these capabilities; preventInsights
-is explicitly false.
-
-ENERGY
-meter_power = cumulative grid import
-meter_power.returned = cumulative grid export
-meter_gas = cumulative gas meter
-
-The widget remains a live dashboard and does not maintain its own history.
+Then long-press Chargee Sparky. Homey should expose the Insights shortcut
+for the measuring device. Homey Web can also be used to inspect Insights.
