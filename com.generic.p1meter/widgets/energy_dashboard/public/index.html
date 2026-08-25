@@ -134,73 +134,115 @@ border-top-color:var(--blue);border-radius:50%;animation:s 1s linear infinite;ma
 </div>
 
 <script>
-let refreshTimer=null;
-const $=id=>document.getElementById(id);
+let refreshTimer = null;
+let HomeyApi = null;
 
-function fmtW(v){
-  if(typeof v!=='number'||!Number.isFinite(v)) return '—';
-  return new Intl.NumberFormat('nl-NL',{maximumFractionDigits:0}).format(Math.round(v))+' W';
-}
-function fmtKwh(v){
-  if(typeof v!=='number'||!Number.isFinite(v)) return '—';
-  return new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v)+' kWh';
-}
-function fmtGas(v){
-  if(typeof v!=='number'||!Number.isFinite(v)) return '—';
-  return new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v)+' m³';
+const $ = id => document.getElementById(id);
+
+function fmtW(v) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
+  return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 })
+    .format(Math.round(v)) + ' W';
 }
 
-async function refresh(){
-  try{
-    const ids=await Homey.getDeviceIds();
-    if(!ids||!ids.length) throw new Error('Selecteer eerst de Chargee Sparky P1 Meter in de widgetinstellingen.');
+function fmtKwh(v) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
+  return new Intl.NumberFormat('nl-NL', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(v) + ' kWh';
+}
 
-    const qs=new URLSearchParams({deviceId:ids[0]});
-    const data=await Homey.api('GET','/?'+qs.toString());
-    if(data.error) throw new Error(data.error);
+function fmtGas(v) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
+  return new Intl.NumberFormat('nl-NL', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(v) + ' m³';
+}
 
-    $('status').textContent=data.online?'● Online':'● Offline';
-    $('status').className=data.online?'status':'status off';
+function showError(message) {
+  $('status').textContent = '● Fout';
+  $('status').className = 'status off';
+  $('heroValue').textContent = '—';
+  $('heroText').innerHTML =
+    '<span class="error">' +
+    String(message || 'Onbekende fout') +
+    '</span>';
+}
 
-    const p=data.now.powerW, r=data.now.returnedW;
-    if(data.status==='import'){
-      $('heroValue').textContent=fmtW(p);
-      $('heroText').textContent=data.statusText;
-    }else if(data.status==='export'){
-      $('heroValue').textContent=fmtW(r);
-      $('heroText').textContent=data.statusText;
-    }else{
-      $('heroValue').textContent='0 W';
-      $('heroText').textContent=data.statusText;
+async function refresh() {
+  try {
+    const ids = HomeyApi.getDeviceIds();
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      showError('Selecteer de Chargee Sparky P1 Meter in de widgetinstellingen.');
+      return;
     }
 
-    $('importPill').textContent=fmtW(p);
-    $('exportPill').textContent=fmtW(r);
-    $('power').textContent=fmtW(p);
-    $('returned').textContent=fmtW(r);
-    $('meter').textContent=fmtKwh(data.now.meterKwh);
-    $('meterReturned').textContent=fmtKwh(data.now.returnedKwh);
-    $('gas').textContent=fmtGas(data.now.gasM3);
+    const deviceId = ids[0];
+    const data = await HomeyApi.api(
+      'GET',
+      '/?deviceId=' + encodeURIComponent(deviceId)
+    );
 
-    $('updated').textContent='Bijgewerkt '+new Date(data.generatedAt).toLocaleTimeString('nl-NL');
-  }catch(e){
-    $('status').textContent='● Fout';
-    $('status').className='status off';
-    $('heroValue').textContent='—';
-    $('heroText').innerHTML='<span class="error">'+String(e.message||e)+'</span>';
+    if (!data || data.error) {
+      throw new Error(data?.error || 'Geen gegevens ontvangen.');
+    }
+
+    $('status').textContent = data.online ? '● Online' : '● Offline';
+    $('status').className = data.online ? 'status' : 'status off';
+
+    const p = data.now?.powerW;
+    const r = data.now?.returnedW;
+
+    if (data.status === 'import') {
+      $('heroValue').textContent = fmtW(p);
+      $('heroText').textContent = data.statusText;
+    } else if (data.status === 'export') {
+      $('heroValue').textContent = fmtW(r);
+      $('heroText').textContent = data.statusText;
+    } else {
+      $('heroValue').textContent = '0 W';
+      $('heroText').textContent = data.statusText;
+    }
+
+    $('importPill').textContent = fmtW(p);
+    $('exportPill').textContent = fmtW(r);
+    $('power').textContent = fmtW(p);
+    $('returned').textContent = fmtW(r);
+    $('meter').textContent = fmtKwh(data.now?.meterKwh);
+    $('meterReturned').textContent = fmtKwh(data.now?.returnedKwh);
+    $('gas').textContent = fmtGas(data.now?.gasM3);
+
+    $('updated').textContent =
+      'Bijgewerkt ' +
+      new Date(data.generatedAt || Date.now()).toLocaleTimeString('nl-NL');
+  } catch (err) {
+    console.error('Chargee Sparky widget:', err);
+    showError(err?.message || err);
   }
 }
 
-async function init(){
-  // Do not keep Homey's widget loading screen open while waiting for the
-  // first API call. Render the dashboard immediately, then fill in data.
+/*
+ * IMPORTANT:
+ * Homey calls this function when the widget API is available.
+ * Calling Homey.ready() directly at script load can leave the native
+ * Homey widget loader spinning forever when the Homey object is not yet
+ * available.
+ */
+function onHomeyReady(Homey) {
+  HomeyApi = Homey;
+
+  // Release Homey's native loading screen immediately.
   Homey.ready();
 
+  // Fetch the live values after the widget is visible.
   refresh();
-  clearInterval(refreshTimer);
-  refreshTimer=setInterval(refresh,5000);
+
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(refresh, 5000);
 }
-init();
 </script>
 </body>
 </html>

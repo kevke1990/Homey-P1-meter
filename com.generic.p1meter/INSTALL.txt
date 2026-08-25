@@ -1,30 +1,28 @@
-CHARGEE SPARKY v1.3.3
+CHARGEE SPARKY v1.3.4
 
-PERFORMANCE FIX
+CRITICAL WIDGET LOADING FIX
 
-The P1 driver receives DSMR telegrams very frequently. v1.3.2 was still
-calling Homey's capability API for every telegram and was also calling
-setAvailable() for every telegram. That can overload/queue Homey work and
-make widgets appear to hang for 20-30 seconds.
+The widget now uses the official onHomeyReady(Homey) initialization
+pattern. Homey.ready() is called immediately inside that callback.
 
-v1.3.3:
-- setAvailable() is only called on TCP connect/error/close
-- live power capabilities are throttled to max once every 2 seconds
-- cumulative meters are written max once every 10 seconds
-- unchanged values are not written again
-- widget API caches the selected device object
-- widget calls Homey.ready() immediately, so the dashboard renders instantly
-- widget refreshes every 5 seconds
+This prevents Homey's native loading spinner from remaining visible when
+the Homey API object is not ready at page-script evaluation time.
 
-Homey Insights / Energy remains the historical source.
+Also retained:
+- Chargee Sparky device selector (driver p1_dongle)
+- 5-second live refresh
+- cached widget API device
+- P1 capability-write throttling
+- Homey Insights / Energy cumulative meter configuration
+- no custom history database
 
-VALIDATE:
+Validate:
   homey app validate --level publish
 
-RUN:
+Run:
   homey app run
 
-For a physical Homey Pro, prefer:
-  homey app run --remote
-when supported by your setup, because this tests on the actual Homey rather
-than only inside the local runner environment.
+IMPORTANT:
+Remove the old Energy Dashboard widget instance and add a NEW widget
+instance after installing v1.3.4. This ensures the new widget HTML is
+loaded rather than a cached old instance.
