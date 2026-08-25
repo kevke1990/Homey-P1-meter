@@ -190,8 +190,9 @@ async function refresh() {
       throw new Error(data?.error || 'Geen gegevens ontvangen.');
     }
 
-    $('status').textContent = data.online ? '● Online' : '● Offline';
-    $('status').className = data.online ? 'status' : 'status off';
+    const isStale = data.stale === true;
+    $('status').textContent = data.online ? (isStale ? '● Geen recente data' : '● Online') : '● Offline';
+    $('status').className = data.online && !isStale ? 'status' : 'status off';
 
     const p = data.now?.powerW;
     const r = data.now?.returnedW;
@@ -217,7 +218,7 @@ async function refresh() {
 
     $('updated').textContent =
       'Bijgewerkt ' +
-      new Date(data.generatedAt || Date.now()).toLocaleTimeString('nl-NL');
+      new Date(data.updatedAt || data.generatedAt || Date.now()).toLocaleTimeString('nl-NL');
   } catch (err) {
     console.error('Chargee Sparky widget:', err);
     showError(err?.message || err);

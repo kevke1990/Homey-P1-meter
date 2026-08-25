@@ -1,14 +1,14 @@
-CHARGEE SPARKY v1.4.3
+Chargee Sparky P1 Meter v1.4.4
 
-Insights are now backed by five properly declared custom number capabilities
-with insights=true. They are migrated to existing devices with addCapability()
-and populated from the P1 telegram. The standard Homey Energy capabilities
-remain unchanged.
+1. Stop the previous development run with CTRL+C.
+2. Replace the app directory contents with this release.
+3. Validate: homey app validate --level publish
+4. Run: homey app run
+5. Keep the existing Chargee Sparky device.
 
-After starting, the log should show:
-  Insights capability toevoegen: ...
-  Insights capability toegevoegd: ...
-  Eerste geldige DSMR-telegram ontvangen: ...
+Expected startup log:
+- P1 Dongle Device initialized
+- Connected to P1 TCP stream
+- First valid DSMR telegram received
 
-Then long-press Chargee Sparky. Homey should expose the Insights shortcut
-for the measuring device. Homey Web can also be used to inspect Insights.
+There should be NO "Invalid Capability: p1_..." messages.

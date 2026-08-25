@@ -51,11 +51,16 @@ module.exports = {
       }
     };
 
-    const powerW = cap('measure_power');
-    const returnedW = cap('measure_power.returned');
-    const meterKwh = cap('meter_power');
-    const returnedKwh = cap('meter_power.returned');
-    const gasM3 = cap('meter_gas');
+    // The driver keeps a small in-memory live snapshot. Use it when available
+    // so the widget does not depend on a round-trip through Homey's capability
+    // cache for every refresh. Fall back to the normal capabilities if needed.
+    const live = device.liveData || {};
+    const powerW = typeof live.powerW === 'number' ? live.powerW : cap('measure_power');
+    const returnedW = typeof live.returnedW === 'number' ? live.returnedW : cap('measure_power.returned');
+    const meterKwh = typeof live.meterKwh === 'number' ? live.meterKwh : cap('meter_power');
+    const returnedKwh = typeof live.returnedKwh === 'number' ? live.returnedKwh : cap('meter_power.returned');
+    const gasM3 = typeof live.gasM3 === 'number' ? live.gasM3 : cap('meter_gas');
+    const updatedAt = Number(live.updatedAt) || 0;
 
     let status = 'balanced';
     let statusText = 'Geen netto afname of teruglevering';
@@ -68,7 +73,7 @@ module.exports = {
     }
 
     return {
-      version: '1.3.0',
+      version: '1.4.4',
       online: device.getAvailable(),
       deviceName: device.getName(),
       status,
@@ -86,6 +91,8 @@ module.exports = {
         exportedCapability: 'meter_power.returned',
         gasCapability: 'meter_gas'
       },
+      updatedAt,
+      stale: updatedAt > 0 ? (Date.now() - updatedAt > 30000) : true,
       generatedAt: Date.now()
     };
   }

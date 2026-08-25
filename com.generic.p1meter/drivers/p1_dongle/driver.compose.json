@@ -9,12 +9,7 @@
     "measure_power.returned",
     "meter_power",
     "meter_power.returned",
-    "meter_gas",
-    "p1_grid_import_power",
-    "p1_grid_export_power",
-    "p1_imported_energy",
-    "p1_exported_energy",
-    "p1_gas_meter"
+    "meter_gas"
   ],
   "settings": [
     {
