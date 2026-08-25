@@ -27,10 +27,21 @@ function diff(a, b) {
 }
 
 function aggregate(history, start, end, bucketMs) {
-  const points = history.filter(p => p.t >= start && p.t <= end).sort((a,b) => a.t - b.t);
-  if (!points.length) return [];
-  const out = [];
+  const all = history.filter(p => p.t <= end).sort((a,b) => a.t - b.t);
+  if (!all.length) return [];
+
+  // Include the last cumulative meter sample before the period so the
+  // first bucket can be calculated correctly.
   let prev = null;
+  for (const p of all) {
+    if (p.t < start) prev = p;
+    else break;
+  }
+
+  const points = all.filter(p => p.t >= start && p.t <= end);
+  if (!points.length) return [];
+
+  const out = [];
   for (const p of points) {
     if (!prev) { prev = p; continue; }
     const idx = Math.floor((p.t - start) / bucketMs);
@@ -83,7 +94,11 @@ module.exports = {
     const deviceId = query?.deviceId;
     if (!deviceId) return { error: 'Geen Chargee Sparky apparaat geselecteerd.' };
 
-    const device = await homey.devices.getDevice({ id: deviceId });
+    // The Homey Apps SDK does not expose `homey.devices` here.
+    // Resolve the selected widget device through its driver instead.
+    const driver = await homey.drivers.getDriver('p1_dongle');
+    const devices = await driver.getDevices();
+    const device = devices.find(d => d.getId() === deviceId || d.id === deviceId);
     if (!device) return { error: 'P1-meter niet gevonden.' };
 
     const history = (await Promise.resolve(device.getStoreValue('history'))) || [];
@@ -94,7 +109,14 @@ module.exports = {
     const chart = aggregate(history, start, now, bucket);
     const summary = totals(history, start, now);
 
-    const cap = id => device.capabilitiesObj?.[id]?.value ?? null;
+    const cap = id => {
+      try {
+        const value = device.getCapabilityValue(id);
+        return value === undefined ? null : value;
+      } catch (err) {
+        return null;
+      }
+    };
     return {
       online: device.available !== false,
       deviceName: device.name,

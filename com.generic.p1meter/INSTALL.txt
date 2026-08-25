@@ -1,11 +1,25 @@
-CHARGEE SPARKY v1.2.1
+CHARGEE SPARKY v1.2.2
 
-Fix: driver images required by Homey publish validation are included:
-- small 75x75
-- large 500x500
-- xlarge 1000x1000
+FIX:
+The Energy Dashboard previously failed with:
+  Cannot read properties of undefined (reading 'getDevice')
 
-driver.compose.json contains the matching images paths.
+Cause:
+The widget API used `homey.devices.getDevice()`, but the Homey Apps SDK
+does not expose `homey.devices` in this context.
+
+Fix:
+The widget API now resolves the selected P1 device through:
+  homey.drivers.getDriver('p1_dongle')
+  -> driver.getDevices()
+  -> device.getId()
+
+Live capabilities are read with device.getCapabilityValue().
+
+Also improved:
+- first chart bucket uses the last sample before the selected period
+- no fake historical values
+- existing P1 history remains compatible
 
 Run:
   homey app validate
