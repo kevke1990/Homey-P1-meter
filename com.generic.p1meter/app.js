@@ -4,7 +4,7 @@ const Homey = require('homey');
 
 class GenericP1MeterApp extends Homey.App {
   async onInit() {
-    this.log('Generic P1 Meter App is gestart');
+    this.log('Chargee Sparky P1 Meter is gestart');
   }
 }
 

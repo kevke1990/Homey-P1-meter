@@ -1,6 +1,6 @@
 {
   "id": "com.generic.p1meter",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
