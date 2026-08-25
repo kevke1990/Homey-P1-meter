@@ -29,6 +29,14 @@ class P1DongleDevice extends Homey.Device {
       updatedAt: 0,
     };
 
+    // v1.4: explicitly enable device-level Insights capabilities. These are
+    // read-only mirrors of the standard P1 capabilities. They exist because
+    // some Homey versions/devices don't expose the Insights entry point for
+    // sub-capabilities consistently after an app update.
+    this.ensureInsightCapabilities().catch(err =>
+      this.error('Insight capabilities:', err)
+    );
+
     // Explicitly apply the Homey Energy configuration to the paired device.
     // The driver manifest contains the same configuration for newly paired devices.
     // This makes upgrades work without requiring the user to re-pair the meter.
@@ -120,6 +128,41 @@ class P1DongleDevice extends Homey.Device {
     }
   }
 
+  async ensureInsightCapabilities() {
+    const capabilities = [
+      'p1_grid_import_power',
+      'p1_grid_export_power',
+      'p1_imported_energy',
+      'p1_exported_energy',
+      'p1_gas_meter',
+    ];
+
+    for (const capability of capabilities) {
+      if (!this.hasCapability(capability)) {
+        await this.addCapability(capability);
+      }
+    }
+
+    // Seed immediately from existing system values so Insights has a value
+    // even before the next DSMR telegram arrives.
+    const pairs = [
+      ['p1_grid_import_power', 'measure_power'],
+      ['p1_grid_export_power', 'measure_power.returned'],
+      ['p1_imported_energy', 'meter_power'],
+      ['p1_exported_energy', 'meter_power.returned'],
+      ['p1_gas_meter', 'meter_gas'],
+    ];
+
+    for (const [target, source] of pairs) {
+      const value = this.getCapabilityValue(source);
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        await this.setCapabilityValue(target, value).catch(err =>
+          this.error(`${target}:`, err)
+        );
+      }
+    }
+  }
+
   processTelegram(telegram) {
     try {
       const getValue = obisCode => {
@@ -167,6 +210,8 @@ class P1DongleDevice extends Homey.Device {
         this.lastCapabilityValues.measure_power = powerW;
         this.setCapabilityValue('measure_power', powerW)
           .catch(err => this.error('measure_power:', err));
+        this.setCapabilityValue('p1_grid_import_power', powerW)
+          .catch(err => this.error('p1_grid_import_power:', err));
       }
 
       if (returnedW !== null &&
@@ -176,6 +221,8 @@ class P1DongleDevice extends Homey.Device {
         this.lastCapabilityValues['measure_power.returned'] = returnedW;
         this.setCapabilityValue('measure_power.returned', returnedW)
           .catch(err => this.error('measure_power.returned:', err));
+        this.setCapabilityValue('p1_grid_export_power', returnedW)
+          .catch(err => this.error('p1_grid_export_power:', err));
       }
 
       // Cumulative meters are only written periodically. Homey Insights does
@@ -188,6 +235,8 @@ class P1DongleDevice extends Homey.Device {
           this.lastCapabilityValues.meter_power = totalIn;
           this.setCapabilityValue('meter_power', totalIn)
             .catch(err => this.error('meter_power:', err));
+          this.setCapabilityValue('p1_imported_energy', totalIn)
+            .catch(err => this.error('p1_imported_energy:', err));
         }
 
         if (totalOut !== null &&
@@ -195,6 +244,8 @@ class P1DongleDevice extends Homey.Device {
           this.lastCapabilityValues['meter_power.returned'] = totalOut;
           this.setCapabilityValue('meter_power.returned', totalOut)
             .catch(err => this.error('meter_power.returned:', err));
+          this.setCapabilityValue('p1_exported_energy', totalOut)
+            .catch(err => this.error('p1_exported_energy:', err));
         }
 
         if (gas !== null && Number.isFinite(gas) &&
@@ -202,6 +253,8 @@ class P1DongleDevice extends Homey.Device {
           this.lastCapabilityValues.meter_gas = gas;
           this.setCapabilityValue('meter_gas', gas)
             .catch(err => this.error('meter_gas:', err));
+          this.setCapabilityValue('p1_gas_meter', gas)
+            .catch(err => this.error('p1_gas_meter:', err));
         }
       }
 

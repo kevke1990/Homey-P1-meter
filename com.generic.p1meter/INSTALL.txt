@@ -1,28 +1,33 @@
-CHARGEE SPARKY v1.3.4
+CHARGEE SPARKY v1.4.0
 
-CRITICAL WIDGET LOADING FIX
+HOMEY INSIGHTS EDITION
 
-The widget now uses the official onHomeyReady(Homey) initialization
-pattern. Homey.ready() is called immediately inside that callback.
+The screenshot showed that the P1 device did not expose the Insights entry
+point. v1.4.0 makes Insights explicit rather than relying only on Homey's
+automatic Insights generation for system capabilities.
 
-This prevents Homey's native loading spinner from remaining visible when
-the Homey API object is not ready at page-script evaluation time.
+Added five read-only, device-level Insight capabilities:
+- p1_grid_import_power      Netafname (W)
+- p1_grid_export_power      Teruglevering (W)
+- p1_imported_energy        Afgenomen energie (kWh)
+- p1_exported_energy        Teruggeleverde energie (kWh)
+- p1_gas_meter              Gasmeterstand (m³)
 
-Also retained:
-- Chargee Sparky device selector (driver p1_dongle)
-- 5-second live refresh
-- cached widget API device
-- P1 capability-write throttling
-- Homey Insights / Energy cumulative meter configuration
-- no custom history database
-
-Validate:
-  homey app validate --level publish
-
-Run:
-  homey app run
+Each custom capability has "insights": true and is synchronized from the
+existing P1 system capabilities. The original system capabilities remain
+intact for Homey Energy, including cumulative import/export configuration.
 
 IMPORTANT:
-Remove the old Energy Dashboard widget instance and add a NEW widget
-instance after installing v1.3.4. This ensures the new widget HTML is
-loaded rather than a cached old instance.
+Existing Homey devices do not automatically receive newly declared
+capabilities. v1.4.0 attempts to migrate them using addCapability(), but
+for the cleanest Homey UI/Insights result remove the old Chargee Sparky
+device and pair it again after installing v1.4.0.
+
+Then:
+  homey app validate --level publish
+  homey app run
+
+After re-pairing:
+Devices -> long press Chargee Sparky P1 Meter -> Insights
+
+You should see the five Chargee Sparky metrics as device-level Insights.

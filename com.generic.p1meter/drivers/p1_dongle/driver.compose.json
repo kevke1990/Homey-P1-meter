@@ -9,7 +9,12 @@
     "measure_power.returned",
     "meter_power",
     "meter_power.returned",
-    "meter_gas"
+    "meter_gas",
+    "p1_grid_import_power",
+    "p1_grid_export_power",
+    "p1_imported_energy",
+    "p1_exported_energy",
+    "p1_gas_meter"
   ],
   "settings": [
     {
@@ -69,31 +74,36 @@
       "title": {
         "en": "Grid import power",
         "nl": "Netafname vermogen"
-      }
+      },
+      "preventInsights": false
     },
     "measure_power.returned": {
       "title": {
         "en": "Grid export power",
         "nl": "Teruglevering vermogen"
-      }
+      },
+      "preventInsights": false
     },
     "meter_power": {
       "title": {
         "en": "Imported energy",
         "nl": "Afgenomen energie"
-      }
+      },
+      "preventInsights": false
     },
     "meter_power.returned": {
       "title": {
         "en": "Exported energy",
         "nl": "Teruggeleverde energie"
-      }
+      },
+      "preventInsights": false
     },
     "meter_gas": {
       "title": {
         "en": "Gas meter",
         "nl": "Gasmeter"
-      }
+      },
+      "preventInsights": false
     }
   }
 }
