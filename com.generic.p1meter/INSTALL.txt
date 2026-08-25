@@ -1,0 +1,11 @@
+CHARGEE SPARKY — HOMEY CLI 4.0.5
+
+1. Replace your old project folder with this package.
+2. Run:
+   homey app validate
+3. Then:
+   homey app run
+
+The manifest includes the required author object.
+Homey Compose source: .homeycompose/app.json
+Do not manually edit app.json after Homey Compose generates it.
