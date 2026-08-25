@@ -1,36 +1,52 @@
-CHARGEE SPARKY v1.4.1
+CHARGEE SPARKY v1.4.2
 
-FIXED: p1_grid_import_power 404
+IMPORTANT: v1.4.2 replaces the broken v1.4.0/v1.4.1 Insights experiment.
 
-Root cause in v1.4.0:
-The TCP connection was started before addCapability() had completed.
-The P1 stream could therefore deliver a telegram while the new custom
-Insight capabilities were still being added. setCapabilityValue() then
-returned HTTP 404 "Invalid Capability".
+ROOT CAUSE
+v1.4.0/v1.4.1 tried to add custom capabilities such as
+p1_grid_import_power dynamically. Homey returned:
+  Invalid Capability ... statusCode: 404
 
-v1.4.1:
-- waits for Insight capability migration before opening TCP
-- adds each missing capability sequentially
-- confirms a capability exists before every Insight write
-- safely skips a capability if Homey could not add it
-- custom Insight capabilities explicitly use uiComponent=sensor
-- Insights remain enabled
-- Homey Energy configuration remains unchanged
-- v1.3.4 fast widget architecture remains unchanged
+The official Homey model is simpler for this P1 meter:
+the existing system capabilities measure_power, meter_power and meter_gas
+already support Insights. The driver manifest explicitly keeps Insights
+enabled with preventInsights=false.
 
-IMPORTANT:
-Because these are new capabilities, after updating the app:
-1. Stop the old app runner.
-2. Start v1.4.1.
-3. Open the existing Chargee Sparky device.
-4. Wait 5-10 seconds for capability migration.
-5. If the device still does not show the Insights entry, delete and pair
-   the P1 device once more. New driver capabilities are not automatically
-   added to existing devices; the migration code handles this, but re-pairing
-   is the clean fallback.
+v1.4.2 therefore:
+- removes ALL p1_grid_* custom capabilities
+- removes all dynamic addCapability() Insight migration code
+- keeps the stable v1.3.4 P1 TCP driver
+- keeps the fast widget
+- keeps Homey Energy import/export configuration
+- explicitly enables Insights on the five standard P1 capabilities
+- keeps clear Dutch/English capability titles
+- avoids any 404 capability errors
 
-Validate:
-  homey app validate --level publish
+INSTALL
+1. Stop the old runner with CTRL+C.
+2. Replace the app directory with this v1.4.2 package.
+3. Run:
+     homey app validate --level publish
+4. Then:
+     homey app run
 
-Run:
-  homey app run
+DO NOT delete the device yet.
+The existing device already contains the standard capabilities.
+
+INSIGHTS
+The relevant Homey Insights data comes from:
+- measure_power
+- measure_power.returned
+- meter_power
+- meter_power.returned
+- meter_gas
+
+Homey automatically generates Insights for these capabilities; preventInsights
+is explicitly false.
+
+ENERGY
+meter_power = cumulative grid import
+meter_power.returned = cumulative grid export
+meter_gas = cumulative gas meter
+
+The widget remains a live dashboard and does not maintain its own history.
