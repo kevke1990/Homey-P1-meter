@@ -163,10 +163,14 @@ class P1DongleDevice extends Homey.Device {
 
   processTelegram(telegram) {
     try {
+      // Read the first numeric value in an OBIS field. Escape the OBIS code
+      // here instead of embedding regex escapes in the caller; this avoids
+      // JavaScript string/RegExp escaping problems.
       const getValue = obisCode => {
-        const match = telegram.match(new RegExp(obisCode + '\\(([^\*\)]+)(?:\*([a-zA-Z]+))?\)'));
+        const escaped = obisCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const match = telegram.match(new RegExp(`${escaped}\\(\\s*([-+]?\\d+(?:[.,]\\d+)?)`));
         if (!match) return null;
-        const value = Number.parseFloat(match[1]);
+        const value = Number.parseFloat(match[1].replace(',', '.'));
         return Number.isFinite(value) ? value : null;
       };
 
@@ -175,13 +179,13 @@ class P1DongleDevice extends Homey.Device {
       const METER_INTERVAL = 10000;
 
       // DSMR OBIS values are expressed in kW for instantaneous power.
-      const importKw = getValue('1-0:1\\.7\\.0');
-      const exportKw = getValue('1-0:2\\.7\\.0');
+      const importKw = getValue('1-0:1.7.0');
+      const exportKw = getValue('1-0:2.7.0');
 
-      const t1In = getValue('1-0:1\\.8\\.1');
-      const t2In = getValue('1-0:1\\.8\\.2');
-      const t1Out = getValue('1-0:2\\.8\\.1');
-      const t2Out = getValue('1-0:2\\.8\\.2');
+      const t1In = getValue('1-0:1.8.1');
+      const t2In = getValue('1-0:1.8.2');
+      const t1Out = getValue('1-0:2.8.1');
+      const t2Out = getValue('1-0:2.8.2');
 
       const totalIn = t1In !== null && t2In !== null ? t1In + t2In : null;
       const totalOut = t1Out !== null && t2Out !== null ? t1Out + t2Out : null;
