@@ -1,21 +1,18 @@
-CHARGEE SPARKY v1.3.1
+CHARGEE SPARKY v1.3.2
 
 FIX FOR HOMEY PUBLISH VALIDATION
-Homey requires APP-LEVEL Store images in addition to the driver images.
+Added the required app-level brandColor:
+  brandColor: #62A8FF
 
-Added:
-  assets/images/small.png   250x175
-  assets/images/large.png   500x350
-  assets/images/xlarge.png  1000x700
+This version retains:
+- Homey Insights / Energy cumulative meter configuration
+- no custom history database
+- fast live dashboard widget
+- required app Store images
+- required driver images
 
-Manifest:
-  images.small  = /assets/images/small.png
-  images.large  = /assets/images/large.png
-  images.xlarge = /assets/images/xlarge.png
-
-Driver images remain present at:
-  drivers/p1_dongle/assets/images/
+Validate:
+  homey app validate --level publish
 
 Run:
-  homey app validate
   homey app run
