@@ -1,0 +1,141 @@
+{
+  "id": "com.generic.p1meter",
+  "version": "1.1.7",
+  "compatibility": ">=12.3.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Generic P1 Meter",
+    "nl": "Generieke P1 Meter"
+  },
+  "description": {
+    "en": "Professional P1 energy dashboard for Chargee Sparky",
+    "nl": "Professioneel P1 energiedashboard voor Chargee Sparky"
+  },
+  "category": "energy",
+  "permissions": [],
+  "widgets": {
+    "energy_dashboard": {
+      "name": {
+        "en": "Energy Dashboard",
+        "nl": "Energie Dashboard"
+      },
+      "height": 820,
+      "transparent": false,
+      "devices": {
+        "type": "app",
+        "singular": true
+      },
+      "api": {
+        "getData": {
+          "method": "GET",
+          "path": "/"
+        }
+      },
+      "id": "energy_dashboard",
+      "settings": [
+        {
+          "id": "electricity_price",
+          "type": "number",
+          "title": {
+            "en": "Electricity price (€/kWh)",
+            "nl": "Stroomprijs (€/kWh)"
+          },
+          "value": 0.3,
+          "min": 0,
+          "max": 2,
+          "step": 0.01
+        },
+        {
+          "id": "feedin_price",
+          "type": "number",
+          "title": {
+            "en": "Feed-in price (€/kWh)",
+            "nl": "Terugleververgoeding (€/kWh)"
+          },
+          "value": 0.15,
+          "min": 0,
+          "max": 2,
+          "step": 0.01
+        },
+        {
+          "id": "gas_price",
+          "type": "number",
+          "title": {
+            "en": "Gas price (€/m³)",
+            "nl": "Gasprijs (€/m³)"
+          },
+          "value": 1.0,
+          "min": 0,
+          "max": 5,
+          "step": 0.01
+        }
+      ]
+    }
+  },
+  "author": {
+    "name": "Chargee Sparky"
+  },
+  "runtime": "nodejs",
+  "drivers": [
+    {
+      "id": "p1_dongle",
+      "name": {
+        "en": "Chargee Sparky P1 Meter",
+        "nl": "Chargee Sparky P1 Meter"
+      },
+      "class": "sensor",
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan"
+      ],
+      "capabilities": [
+        "measure_power",
+        "measure_power.returned",
+        "meter_power",
+        "meter_power.returned",
+        "meter_gas"
+      ],
+      "settings": [
+        {
+          "type": "text",
+          "id": "ip",
+          "value": "192.168.8.224",
+          "label": {
+            "en": "IP Address",
+            "nl": "IP-adres"
+          }
+        },
+        {
+          "type": "number",
+          "id": "port",
+          "value": 3602,
+          "label": {
+            "en": "TCP Port",
+            "nl": "TCP-poort"
+          }
+        }
+      ],
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          },
+          "options": {
+            "singular": true
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ]
+    }
+  ]
+}

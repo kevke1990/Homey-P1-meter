@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chargee Sparky</title>
+<style>
+:root{color-scheme:dark;--bg:#090b12;--card:#121621;--muted:#8e98aa;--text:#f6f7fb;--blue:#4aa3ff;--green:#39d98a;--orange:#ff9f43;--purple:#a87cff;--line:#232a38}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#090b12,#0d1018);color:var(--text);font:14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:760px;margin:auto;padding:16px}.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.title{font-size:22px;font-weight:750}.status{font-size:12px;color:var(--green)}.status.off{color:#ff6577}.hero{background:linear-gradient(145deg,#141b2a,#0f1420);border:1px solid var(--line);border-radius:24px;padding:20px;margin-bottom:12px}.label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}.big{font-size:46px;font-weight:800;line-height:1.05;margin:7px 0}.sub{color:var(--muted)}.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}.value{font-size:24px;font-weight:750;margin-top:5px}.blue{color:var(--blue)}.green{color:var(--green)}.orange{color:var(--orange)}.section{font-weight:750;margin:18px 2px 9px}.chart{height:150px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;align-items:flex-end;gap:5px;overflow:hidden}.bar{flex:1;min-width:5px;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,var(--blue),#24598c)}.bar.green{background:linear-gradient(180deg,var(--green),#19734b)}.bar.orange{background:linear-gradient(180deg,var(--orange),#95541e)}.legend{display:flex;gap:14px;color:var(--muted);font-size:11px;margin-top:8px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;background:var(--blue)}.dot.g{background:var(--green)}.dot.o{background:var(--orange)}.footer{text-align:center;color:#667084;font-size:10px;margin:18px}
+@media(max-width:420px){.wrap{padding:12px}.big{font-size:40px}.value{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><div class="title">Chargee Sparky</div><div id="status" class="status">● Verbinden…</div></div>
+  <div class="hero"><div class="label">Huidig stroomverbruik</div><div id="power" class="big">— W</div><div id="netto" class="sub">Verbinden met de meter…</div></div>
+  <div class="cards">
+    <div class="card"><div class="label">☀️ Teruglevering nu</div><div id="returned" class="value green">— W</div></div>
+    <div class="card"><div class="label">🔥 Gas meterstand</div><div id="gas" class="value orange">— m³</div></div>
+    <div class="card"><div class="label">⚡ Totaal verbruik</div><div id="meter" class="value blue">— kWh</div></div>
+    <div class="card"><div class="label">☀️ Totaal teruggeleverd</div><div id="meterOut" class="value green">— kWh</div></div>
+  </div>
+  <div class="section">Elektriciteit</div><div class="chart" id="electricChart"></div>
+  <div class="legend"><span><i class="dot"></i>Verbruik</span><span><i class="dot g"></i>Teruglevering</span></div>
+  <div class="section">Gasverbruik</div><div class="chart" id="gasChart"></div>
+  <div class="legend"><span><i class="dot o"></i>Gas</span></div>
+  <div class="section">Indicatieve meterwaarde</div>
+  <div class="cards">
+    <div class="card"><div class="label">Verbruikwaarde</div><div id="cost" class="value blue">—</div></div>
+    <div class="card"><div class="label">Terugleverwaarde</div><div id="feed" class="value green">—</div></div>
+  </div>
+  <div class="footer" id="updated">Nog geen gegevens</div>
+</div>
+<script>
+function euro(v){return new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(v)}
+function fmt(v,d=2){return v==null?'—':new Intl.NumberFormat('nl-NL',{maximumFractionDigits:d}).format(v)}
+function bars(el,vals,cls=''){el.innerHTML='';const max=Math.max(...vals,1);for(const v of vals){const b=document.createElement('div');b.className='bar '+cls;b.style.height=Math.max(3,(v/max)*125)+'px';b.title=fmt(v,2);el.appendChild(b)}}
+async function refresh(){
+  try{
+    const data=await Homey.api('GET','/');
+    if(data?.error)throw new Error(data.error);
+    status.textContent=data.online?'● Online':'● Offline';status.className='status '+(data.online?'':'off');
+    power.textContent=fmt(data.powerW,0)+' W';
+    returned.textContent=fmt(data.returnedW,0)+' W';
+    netto.textContent=(data.powerW??0)>0?'U gebruikt nu stroom van het net':(data.returnedW??0)>0?'U levert nu stroom terug':'Geen actieve vermogensstroom';
+    gas.textContent=data.gasM3==null?'—':fmt(data.gasM3,3)+' m³';
+    meter.textContent=fmt(data.meterKwh,2)+' kWh';
+    meterOut.textContent=fmt(data.returnedKwh,2)+' kWh';
+    cost.textContent=data.meterKwh==null?'—':euro(data.meterKwh*data.prices.electricity);
+    feed.textContent=data.returnedKwh==null?'—':euro(data.returnedKwh*data.prices.feedin);
+    // Until Insights history is wired, show a clearly live-only mini graph rather than fabricated history.
+    const p=Math.max(0,(data.powerW??0)/1000), r=Math.max(0,(data.returnedW??0)/1000), g=Math.max(0,(data.gasM3??0));
+    bars(electricChart,Array.from({length:24},(_,i)=>i===23?p:0));
+    const rb=electricChart.children[23]; if(rb)rb.classList.add('green');
+    bars(gasChart,Array.from({length:24},(_,i)=>i===23?g:0),'orange');
+    updated.textContent='Bijgewerkt: '+new Date(data.generatedAt).toLocaleTimeString('nl-NL');
+    if(window.Homey?.ready)Homey.ready();
+  }catch(e){
+    status.textContent='● Geen verbinding';status.className='status off';updated.textContent=e.message;
+    if(window.Homey?.ready)Homey.ready();
+  }
+}
+refresh();setInterval(refresh,10000);
+</script>
+</body>
+</html>
