@@ -1,19 +1,9 @@
-# Chargee Sparky Professional Dashboard — Homey CLI 4.0.5
+# Chargee Sparky P1 Meter v1.3.0
 
-This package uses Homey Compose correctly. The app manifest source is `.homeycompose/app.json`; do not manually create or edit a root `app.json`.
-
-Widget source:
-`widgets/energy_dashboard/widget.compose.json`
-
-Required widget assets:
-- preview-dark.png
-- preview-light.png
-- public/index.html
-- api.js
-
-Install:
-1. Replace the old project directory with this package.
-2. `homey app validate`
-3. `homey app run`
-
-The widget uses the app-scoped device selector, so no global API permission is required.
+A Homey P1 meter driver with:
+- live grid import/export power
+- cumulative imported/exported energy
+- cumulative gas meter
+- Homey Energy cumulative-meter configuration
+- Homey Insights history through the standard capabilities
+- fast live dashboard widget without a second local history database

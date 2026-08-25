@@ -1,26 +1,24 @@
-CHARGEE SPARKY v1.2.2
+CHARGEE SPARKY v1.3.0
 
-FIX:
-The Energy Dashboard previously failed with:
-  Cannot read properties of undefined (reading 'getDevice')
+ARCHITECTURE CHANGE
+- Removed the custom 31-day history database from the device.
+- Homey Insights is now the primary historical source.
+- The P1 driver is configured as a cumulative Homey Energy meter.
+- Imported energy: meter_power
+- Exported energy: meter_power.returned
+- Gas: meter_gas
+- Existing paired devices receive the energy configuration through setEnergy()
+  during startup, so re-pairing should not be necessary.
 
-Cause:
-The widget API used `homey.devices.getDevice()`, but the Homey Apps SDK
-does not expose `homey.devices` in this context.
+WIDGET
+- Live-only cockpit for very fast loading.
+- No getStoreValue(history), sorting or chart aggregation.
+- Refreshes every 15 seconds.
+- Historical graphs/energy reports are handled by Homey Insights / Energy.
 
-Fix:
-The widget API now resolves the selected P1 device through:
-  homey.drivers.getDriver('p1_dongle')
-  -> driver.getDevices()
-  -> device.getId()
-
-Live capabilities are read with device.getCapabilityValue().
-
-Also improved:
-- first chart bucket uses the last sample before the selected period
-- no fake historical values
-- existing P1 history remains compatible
-
-Run:
+INSTALL
   homey app validate
   homey app run
+
+After running, open the existing Energy Dashboard widget and select the
+Chargee Sparky P1 Meter if the device selector asks for it.

@@ -1,113 +1,36 @@
 'use strict';
 
-function finite(v) {
-  return typeof v === 'number' && Number.isFinite(v);
-}
-
-function periodStart(period, now) {
-  const d = new Date(now);
-  if (period === 'week') {
-    const day = d.getDay();
-    const diff = day === 0 ? 6 : day - 1;
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - diff);
-    return d.getTime();
-  }
-  if (period === 'month') {
-    d.setHours(0, 0, 0, 0);
-    d.setDate(1);
-    return d.getTime();
-  }
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function diff(a, b) {
-  return finite(a) && finite(b) ? Math.max(0, b - a) : null;
-}
-
-function aggregate(history, start, end, bucketMs) {
-  const all = history.filter(p => p.t <= end).sort((a,b) => a.t - b.t);
-  if (!all.length) return [];
-
-  // Include the last cumulative meter sample before the period so the
-  // first bucket can be calculated correctly.
-  let prev = null;
-  for (const p of all) {
-    if (p.t < start) prev = p;
-    else break;
-  }
-
-  const points = all.filter(p => p.t >= start && p.t <= end);
-  if (!points.length) return [];
-
-  const out = [];
-  for (const p of points) {
-    if (!prev) { prev = p; continue; }
-    const idx = Math.floor((p.t - start) / bucketMs);
-    if (!out[idx]) out[idx] = { t: start + idx * bucketMs, importKwh: 0, exportKwh: 0, gasM3: 0, samples: 0, powerW: 0, returnedW: 0 };
-    const item = out[idx];
-    const ei = diff(prev.e, p.e);
-    const eo = diff(prev.re, p.re);
-    const gas = diff(prev.g, p.g);
-    if (ei !== null) item.importKwh += ei;
-    if (eo !== null) item.exportKwh += eo;
-    if (gas !== null) item.gasM3 += gas;
-    if (finite(p.p)) item.powerW += p.p;
-    if (finite(p.r)) item.returnedW += p.r;
-    item.samples++;
-    prev = p;
-  }
-  return out.filter(Boolean).map(x => ({
-    t: x.t,
-    importKwh: x.importKwh,
-    exportKwh: x.exportKwh,
-    gasM3: x.gasM3,
-    powerW: x.samples ? x.powerW / x.samples : 0,
-    returnedW: x.samples ? x.returnedW / x.samples : 0
-  }));
-}
-
-function totals(history, start, end) {
-  const points = history.filter(p => p.t <= end).sort((a,b) => a.t-b.t);
-  if (!points.length) return { importKwh: 0, exportKwh: 0, gasM3: 0 };
-  let before = null;
-  let first = null;
-  let last = null;
-  for (const p of points) {
-    if (p.t < start) before = p;
-    if (p.t >= start && !first) first = p;
-    if (p.t >= start && p.t <= end) last = p;
-  }
-  const base = before || first;
-  const endPoint = last || first;
-  if (!base || !endPoint) return { importKwh: 0, exportKwh: 0, gasM3: 0 };
-  return {
-    importKwh: diff(base.e, endPoint.e) || 0,
-    exportKwh: diff(base.re, endPoint.re) || 0,
-    gasM3: diff(base.g, endPoint.g) || 0
-  };
-}
+/*
+ * Chargee Sparky v1.3
+ *
+ * The widget is deliberately live-only.
+ * Historical energy data is no longer stored in device settings.
+ * Homey itself records the capability history and uses it for Insights
+ * and Homey Energy because the P1 driver is configured as a cumulative
+ * measuring device.
+ */
 
 module.exports = {
   async getData({ homey, query }) {
     const deviceId = query?.deviceId;
-    if (!deviceId) return { error: 'Geen Chargee Sparky apparaat geselecteerd.' };
+    if (!deviceId) {
+      return { error: 'Geen Chargee Sparky apparaat geselecteerd.' };
+    }
 
-    // The Homey Apps SDK does not expose `homey.devices` here.
-    // Resolve the selected widget device through its driver instead.
-    const driver = await homey.drivers.getDriver('p1_dongle');
-    const devices = await driver.getDevices();
-    const device = devices.find(d => d.getId() === deviceId || d.id === deviceId);
-    if (!device) return { error: 'P1-meter niet gevonden.' };
+    // Fast path: get the already-loaded driver and device instance.
+    const driver = homey.drivers.getDriver('p1_dongle');
+    const devices = driver.getDevices();
+    const device = devices.find(d => {
+      try {
+        return d.getId() === deviceId;
+      } catch (err) {
+        return d.id === deviceId;
+      }
+    });
 
-    const history = (await Promise.resolve(device.getStoreValue('history'))) || [];
-    const now = Date.now();
-    const period = ['today','week','month'].includes(query?.period) ? query.period : 'today';
-    const start = periodStart(period, now);
-    const bucket = period === 'today' ? 60 * 60 * 1000 : period === 'week' ? 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-    const chart = aggregate(history, start, now, bucket);
-    const summary = totals(history, start, now);
+    if (!device) {
+      return { error: 'P1-meter niet gevonden.' };
+    }
 
     const cap = id => {
       try {
@@ -117,27 +40,43 @@ module.exports = {
         return null;
       }
     };
+
+    const powerW = cap('measure_power');
+    const returnedW = cap('measure_power.returned');
+    const meterKwh = cap('meter_power');
+    const returnedKwh = cap('meter_power.returned');
+    const gasM3 = cap('meter_gas');
+
+    let status = 'balanced';
+    let statusText = 'Geen netto afname of teruglevering';
+    if (typeof powerW === 'number' && powerW > 1) {
+      status = 'import';
+      statusText = 'U gebruikt nu stroom van het elektriciteitsnet';
+    } else if (typeof returnedW === 'number' && returnedW > 1) {
+      status = 'export';
+      statusText = 'U levert nu stroom terug aan het elektriciteitsnet';
+    }
+
     return {
-      online: device.available !== false,
-      deviceName: device.name,
+      version: '1.3.0',
+      online: device.getAvailable(),
+      deviceName: device.getName(),
+      status,
+      statusText,
       now: {
-        powerW: cap('measure_power'),
-        returnedW: cap('measure_power.returned'),
-        meterKwh: cap('meter_power'),
-        returnedKwh: cap('meter_power.returned'),
-        gasM3: cap('meter_gas')
+        powerW,
+        returnedW,
+        meterKwh,
+        returnedKwh,
+        gasM3
       },
-      summary,
-      chart,
-      historyPoints: history.length,
-      historyDays: history.length ? Math.round((now - history[0].t) / 86400000 * 10) / 10 : 0,
-      generatedAt: now,
-      prices: {
-        electricity: Number(query?.electricityPrice ?? 0.30),
-        feedin: Number(query?.feedinPrice ?? 0.15),
-        gas: Number(query?.gasPrice ?? 1.00)
+      energy: {
+        cumulative: true,
+        importedCapability: 'meter_power',
+        exportedCapability: 'meter_power.returned',
+        gasCapability: 'meter_gas'
       },
-      period
+      generatedAt: Date.now()
     };
   }
 };

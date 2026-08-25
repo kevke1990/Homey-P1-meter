@@ -58,5 +58,42 @@
     "small": "/drivers/p1_dongle/assets/images/small.png",
     "large": "/drivers/p1_dongle/assets/images/large.png",
     "xlarge": "/drivers/p1_dongle/assets/images/xlarge.png"
+  },
+  "energy": {
+    "cumulative": true,
+    "cumulativeImportedCapability": "meter_power",
+    "cumulativeExportedCapability": "meter_power.returned"
+  },
+  "capabilitiesOptions": {
+    "measure_power": {
+      "title": {
+        "en": "Grid import power",
+        "nl": "Netafname vermogen"
+      }
+    },
+    "measure_power.returned": {
+      "title": {
+        "en": "Grid export power",
+        "nl": "Teruglevering vermogen"
+      }
+    },
+    "meter_power": {
+      "title": {
+        "en": "Imported energy",
+        "nl": "Afgenomen energie"
+      }
+    },
+    "meter_power.returned": {
+      "title": {
+        "en": "Exported energy",
+        "nl": "Teruggeleverde energie"
+      }
+    },
+    "meter_gas": {
+      "title": {
+        "en": "Gas meter",
+        "nl": "Gasmeter"
+      }
+    }
   }
 }

@@ -3,10 +3,6 @@
 const Homey = require('homey');
 const net = require('net');
 
-const SAMPLE_INTERVAL_MS = 5 * 60 * 1000;
-const HISTORY_DAYS = 31;
-const HISTORY_MAX = Math.ceil((HISTORY_DAYS * 24 * 60) / 5) + 20;
-
 class P1DongleDevice extends Homey.Device {
   async onInit() {
     this.log('P1 Dongle Device (Chargee Sparky TCP) geïnitialiseerd');
@@ -14,8 +10,16 @@ class P1DongleDevice extends Homey.Device {
     this.client = null;
     this.reconnectTimer = null;
     this.destroyed = false;
-    this.lastHistorySampleAt = 0;
-    this.historyBusy = false;
+
+    // Explicitly apply the Homey Energy configuration to the paired device.
+    // The driver manifest contains the same configuration for newly paired devices.
+    // This makes upgrades work without requiring the user to re-pair the meter.
+    await this.setEnergy({
+      cumulative: true,
+      cumulativeImportedCapability: 'meter_power',
+      cumulativeExportedCapability: 'meter_power.returned',
+    }).catch(err => this.error('setEnergy:', err));
+
     this.connectTcp();
   }
 
@@ -144,48 +148,8 @@ class P1DongleDevice extends Homey.Device {
       }
 
       this.setAvailable().catch(err => this.error('setAvailable:', err));
-
-      if (importKw !== null || exportKw !== null || totalIn !== null || totalOut !== null || gas !== null) {
-        this.recordHistory({
-          powerW: importKw !== null ? importKw * 1000 : null,
-          returnedW: exportKw !== null ? exportKw * 1000 : null,
-          meterKwh: totalIn,
-          returnedKwh: totalOut,
-          gasM3: gas
-        }).catch(err => this.error('history:', err));
-      }
     } catch (err) {
       this.error('Fout bij parsen DSMR telegram:', err);
-    }
-  }
-
-  async recordHistory(sample) {
-    const now = Date.now();
-    if (this.historyBusy || now - this.lastHistorySampleAt < SAMPLE_INTERVAL_MS) return;
-    if (sample.meterKwh === null && sample.returnedKwh === null && sample.gasM3 === null) return;
-
-    this.historyBusy = true;
-    try {
-      const history = (await Promise.resolve(this.getStoreValue('history'))) || [];
-      const previous = history.length ? history[history.length - 1] : null;
-      const point = {
-        t: now,
-        p: Number.isFinite(sample.powerW) ? Math.round(sample.powerW) : null,
-        r: Number.isFinite(sample.returnedW) ? Math.round(sample.returnedW) : null,
-        e: Number.isFinite(sample.meterKwh) ? sample.meterKwh : null,
-        re: Number.isFinite(sample.returnedKwh) ? sample.returnedKwh : null,
-        g: Number.isFinite(sample.gasM3) ? sample.gasM3 : null
-      };
-
-      // Avoid storing duplicate/older cumulative readings.
-      if (previous && point.t <= previous.t) return;
-      history.push(point);
-      const cutoff = now - HISTORY_DAYS * 24 * 60 * 60 * 1000;
-      const pruned = history.filter(x => x.t >= cutoff).slice(-HISTORY_MAX);
-      await this.setStoreValue('history', pruned);
-      this.lastHistorySampleAt = now;
-    } finally {
-      this.historyBusy = false;
     }
   }
 }

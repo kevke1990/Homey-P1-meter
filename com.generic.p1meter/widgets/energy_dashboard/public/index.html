@@ -2,105 +2,203 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Chargee Sparky</title>
 <style>
-:root{color-scheme:dark;--bg:#080b12;--panel:#111621;--panel2:#151b28;--line:#252d3d;--text:#f7f8fb;--muted:#8d98ab;--blue:#52a8ff;--green:#36d98b;--orange:#ffad55;--red:#ff687d;--purple:#a98aff}
-*{box-sizing:border-box}html,body{margin:0;background:linear-gradient(180deg,#080b12 0%,#0d1119 100%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{min-height:100vh}.wrap{max-width:760px;margin:auto;padding:14px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.brand{font-weight:800;font-size:20px;letter-spacing:-.02em}.status{font-size:11px;color:var(--green);font-weight:650}.status.off{color:var(--red)}.hero{border:1px solid var(--line);border-radius:24px;background:radial-gradient(circle at 80% 0,#19314d 0,transparent 42%),linear-gradient(145deg,#141b28,#0f141e);padding:20px;margin-bottom:10px;overflow:hidden}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:750}.heroValue{font-size:46px;line-height:1;font-weight:850;margin:7px 0}.heroText{color:#c4cad5;font-size:13px}.flow{display:flex;gap:7px;margin-top:14px;align-items:center}.pill{padding:7px 9px;border-radius:999px;background:#0d121c;border:1px solid var(--line);font-size:11px;color:#c9cfda}.pill.green{color:var(--green)}.pill.blue{color:var(--blue)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;min-width:0}.label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:700}.val{font-size:23px;font-weight:800;margin-top:5px}.small{font-size:11px;color:var(--muted);margin-top:3px}.blue{color:var(--blue)}.green{color:var(--green)}.orange{color:var(--orange)}.purple{color:var(--purple)}.tabs{display:flex;gap:6px;background:#0e131d;border:1px solid var(--line);padding:4px;border-radius:14px;margin:14px 0 10px}.tab{flex:1;border:0;background:transparent;color:var(--muted);padding:9px 5px;border-radius:10px;font-weight:750;font-size:12px}.tab.active{background:#1a2230;color:var(--text)}.sectionTitle{display:flex;justify-content:space-between;align-items:end;margin:16px 2px 7px}.sectionTitle strong{font-size:15px}.sectionTitle span{font-size:11px;color:var(--muted)}.chartCard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px}.chart{height:170px;display:flex;align-items:flex-end;gap:3px;position:relative;padding:8px 2px 20px}.barWrap{height:142px;flex:1;display:flex;align-items:flex-end;gap:2px;min-width:3px}.bar{flex:1;border-radius:4px 4px 1px 1px;min-height:1px;background:var(--blue)}.bar.out{background:var(--green)}.bar.gas{background:var(--orange)}.axis{display:flex;justify-content:space-between;color:#667084;font-size:9px;margin-top:-2px}.legend{display:flex;gap:14px;margin-top:9px;font-size:10px;color:var(--muted)}.dot{width:7px;height:7px;display:inline-block;border-radius:50%;background:var(--blue);margin-right:5px}.dot.g{background:var(--green)}.dot.o{background:var(--orange)}.note{font-size:11px;line-height:1.45;color:var(--muted);background:#0d121b;border:1px solid var(--line);border-radius:14px;padding:11px;margin-top:10px}.cost{font-size:25px;font-weight:850}.footer{text-align:center;color:#606a7c;font-size:10px;padding:14px 0 4px}.empty{height:170px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;text-align:center}.spinner{display:inline-block;width:12px;height:12px;border:2px solid #4c5668;border-top-color:var(--blue);border-radius:50%;animation:s 1s linear infinite;margin-right:6px}@keyframes s{to{transform:rotate(360deg)}}
-@media(max-width:420px){.wrap{padding:11px}.heroValue{font-size:40px}.val{font-size:21px}.card{padding:12px}}
+:root{
+  --bg:#090c12;--panel:#111722;--panel2:#151d2a;--line:#273244;
+  --text:#f4f7fb;--muted:#8792a5;--blue:#62a8ff;--green:#63d99b;
+  --orange:#ffb65c;--red:#ff687c;--purple:#b58cff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:linear-gradient(180deg,#080b11,#0d1119);color:var(--text);
+font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{min-height:100vh}
+.wrap{max-width:760px;margin:auto;padding:14px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.brand{font-weight:850;font-size:20px;letter-spacing:-.03em}
+.status{font-size:11px;font-weight:750;color:var(--green)}
+.status.off{color:var(--red)}
+.hero{border:1px solid var(--line);border-radius:25px;
+background:radial-gradient(circle at 80% 0,#19314d 0,transparent 45%),
+linear-gradient(145deg,#141c2a,#0f141d);padding:21px;margin-bottom:10px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);font-weight:800}
+.heroValue{font-size:48px;line-height:1;font-weight:900;margin:8px 0}
+.heroText{font-size:13px;color:#c7cfdb;line-height:1.4}
+.flow{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}
+.pill{padding:7px 10px;border-radius:999px;background:#0c121c;border:1px solid var(--line);
+font-size:11px;color:#cdd4df}
+.pill.blue{color:var(--blue)}.pill.green{color:var(--green)}.pill.orange{color:var(--orange)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;min-width:0}
+.label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+.val{font-size:23px;font-weight:850;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.small{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35}
+.blue{color:var(--blue)}.green{color:var(--green)}.orange{color:var(--orange)}.purple{color:var(--purple)}
+.section{margin-top:14px}
+.sectionTitle{font-size:15px;font-weight:850;margin:0 2px 7px}
+.insight{background:linear-gradient(145deg,#111a29,#101620);border:1px solid var(--line);
+border-radius:18px;padding:15px}
+.insightTitle{font-size:13px;font-weight:850;margin-bottom:5px}
+.insightText{font-size:11px;color:#aeb7c6;line-height:1.55}
+.rows{margin-top:10px;display:grid;gap:7px}
+.row{display:flex;justify-content:space-between;gap:12px;font-size:11px}
+.row span:first-child{color:var(--muted)}
+.row span:last-child{font-weight:750}
+.note{font-size:11px;line-height:1.5;color:var(--muted);background:#0d121b;
+border:1px solid var(--line);border-radius:14px;padding:11px}
+.footer{text-align:center;color:#606a7c;font-size:10px;padding:14px 0 4px}
+.error{color:#ff9baa}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid #4c5668;
+border-top-color:var(--blue);border-radius:50%;animation:s 1s linear infinite;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+@media(max-width:380px){.heroValue{font-size:42px}.val{font-size:20px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><div class="brand">Chargee Sparky</div><div id="status" class="status"><span class="spinner"></span> Verbinden…</div></div>
-  <div class="hero">
+  <div class="top">
+    <div class="brand">Chargee Sparky</div>
+    <div id="status" class="status"><span class="spinner"></span>Laden...</div>
+  </div>
+
+  <section class="hero">
     <div class="eyebrow">Elektriciteit · nu</div>
     <div id="heroValue" class="heroValue">—</div>
-    <div id="heroText" class="heroText">Gegevens ophalen…</div>
-    <div class="flow"><div id="importPill" class="pill blue">⚡ Netafname —</div><div id="exportPill" class="pill green">☀️ Teruglevering —</div></div>
-  </div>
+    <div id="heroText" class="heroText">P1-metergegevens worden opgehaald…</div>
+    <div class="flow">
+      <div class="pill blue">⚡ Netafname <b id="importPill">—</b></div>
+      <div class="pill green">☀️ Teruglevering <b id="exportPill">—</b></div>
+    </div>
+  </section>
 
   <div class="grid">
-    <div class="card"><div class="label">⚡ Verbruik nu</div><div id="power" class="val blue">—</div><div class="small">van het elektriciteitsnet</div></div>
-    <div class="card"><div class="label">☀️ Teruglevering</div><div id="returned" class="val green">—</div><div class="small">naar het elektriciteitsnet</div></div>
-    <div class="card"><div class="label">🔥 Gas meterstand</div><div id="gasMeter" class="val orange">—</div><div class="small">totale meterstand</div></div>
-    <div class="card"><div class="label">💶 Waarde vandaag</div><div id="cost" class="cost blue">—</div><div class="small">geschatte netto energiekosten</div></div>
+    <div class="card">
+      <div class="label">⚡ Verbruik nu</div>
+      <div id="power" class="val blue">—</div>
+      <div class="small">vermogen uit het elektriciteitsnet</div>
+    </div>
+    <div class="card">
+      <div class="label">☀️ Teruglevering</div>
+      <div id="returned" class="val green">—</div>
+      <div class="small">vermogen naar het elektriciteitsnet</div>
+    </div>
+    <div class="card">
+      <div class="label">⚡ Totaal afgenomen</div>
+      <div id="meter" class="val blue">—</div>
+      <div class="small">cumulatieve meterstand</div>
+    </div>
+    <div class="card">
+      <div class="label">☀️ Totaal teruggeleverd</div>
+      <div id="meterReturned" class="val green">—</div>
+      <div class="small">cumulatieve meterstand</div>
+    </div>
+    <div class="card">
+      <div class="label">🔥 Gas meterstand</div>
+      <div id="gas" class="val orange">—</div>
+      <div class="small">totale gasmeterstand</div>
+    </div>
+    <div class="card">
+      <div class="label">📊 Historie</div>
+      <div class="val purple">Homey Insights</div>
+      <div class="small">historische gegevens worden door Homey beheerd</div>
+    </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" data-period="today">Vandaag</button>
-    <button class="tab" data-period="week">Week</button>
-    <button class="tab" data-period="month">Maand</button>
-  </div>
+  <section class="section">
+    <div class="sectionTitle">Homey Energy & Insights</div>
+    <div class="insight">
+      <div class="insightTitle">📈 Historische grafieken horen bij Homey</div>
+      <div class="insightText">
+        Chargee Sparky slaat geen tweede historische database meer op.
+        De P1-capabilities worden rechtstreeks door Homey als Insights
+        geregistreerd en de meter is als cumulatieve energiemeter geconfigureerd.
+      </div>
+      <div class="rows">
+        <div class="row"><span>Elektriciteit afgenomen</span><span>meter_power</span></div>
+        <div class="row"><span>Elektriciteit teruggeleverd</span><span>meter_power.returned</span></div>
+        <div class="row"><span>Gas</span><span>meter_gas</span></div>
+      </div>
+    </div>
+  </section>
 
-  <div class="grid">
-    <div class="card"><div class="label">⚡ Verbruikt</div><div id="sumImport" class="val blue">—</div><div id="sumImportCost" class="small">—</div></div>
-    <div class="card"><div class="label">☀️ Teruggeleverd</div><div id="sumExport" class="val green">—</div><div id="sumExportValue" class="small">—</div></div>
-    <div class="card"><div class="label">🔥 Gas verbruikt</div><div id="sumGas" class="val orange">—</div><div id="sumGasCost" class="small">—</div></div>
-    <div class="card"><div class="label">📈 Historie</div><div id="history" class="val purple">—</div><div class="small">beschikbare meetgegevens</div></div>
-  </div>
+  <section class="section">
+    <div class="note">
+      ☀️ <b>Belangrijk:</b> de P1-meter meet teruglevering aan het net.
+      Dat is niet automatisch de totale zonneproductie. Voor echte
+      zonneproductie is een koppeling met de omvormer nodig.
+    </div>
+  </section>
 
-  <div class="sectionTitle"><strong>Elektriciteit</strong><span>verbruik vs. teruglevering</span></div>
-  <div class="chartCard"><div id="electricChart" class="chart"></div><div class="axis"><span>start</span><span>midden</span><span>nu</span></div><div class="legend"><span><i class="dot"></i>Verbruik</span><span><i class="dot g"></i>Teruglevering</span></div></div>
-
-  <div class="sectionTitle"><strong>Gas</strong><span>verbruik per periode</span></div>
-  <div class="chartCard"><div id="gasChart" class="chart"></div><div class="axis"><span>start</span><span>midden</span><span>nu</span></div><div class="legend"><span><i class="dot o"></i>Gasverbruik</span></div></div>
-
-  <div class="note"><strong>☀️ Over zonnepanelen</strong><br>De P1-meter kan exact zien hoeveel stroom u <strong>teruglevert</strong>. De totale productie van uw zonnepanelen kan de P1-meter alleen niet bepalen: daarvoor is een omvormer- of PV-meterintegratie nodig. Daarom tonen we hier bewust <strong>teruglevering</strong> en noemen we dat niet ten onrechte “zonneproductie”.</div>
-  <div id="updated" class="footer">Nog geen gegevens</div>
+  <div id="updated" class="footer">—</div>
 </div>
+
 <script>
-let period='today';let prices={electricity:.30,feedin:.15,gas:1};let timer=null;
+let refreshTimer=null;
 const $=id=>document.getElementById(id);
-const fmt=(v,d=2)=>v==null?'—':new Intl.NumberFormat('nl-NL',{maximumFractionDigits:d}).format(v);
-const euro=v=>new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(v||0);
-function renderBars(el, items, type){
-  el.innerHTML='';
-  if(!items.length){el.innerHTML='<div class="empty">Nog onvoldoende historische gegevens.<br>De grafiek vult zich automatisch terwijl de P1-meter meet.</div>';return}
-  const max=Math.max(0.01,...items.map(x=>type==='gas'?x.gasM3:Math.max(x.importKwh||0,x.exportKwh||0)));
-  for(const x of items){
-    const wrap=document.createElement('div');wrap.className='barWrap';
-    if(type==='gas'){
-      const b=document.createElement('div');b.className='bar gas';b.style.height=Math.max(1,Math.min(142,(x.gasM3/max)*142))+'px';b.title=fmt(x.gasM3,3)+' m³';wrap.appendChild(b);
-    }else{
-      const a=document.createElement('div');a.className='bar';a.style.height=Math.max(1,Math.min(142,(x.importKwh/max)*142))+'px';a.title='Verbruik '+fmt(x.importKwh,3)+' kWh';
-      const b=document.createElement('div');b.className='bar out';b.style.height=Math.max(1,Math.min(142,(x.exportKwh/max)*142))+'px';b.title='Teruggeleverd '+fmt(x.exportKwh,3)+' kWh';
-      wrap.append(a,b);
-    }
-    el.appendChild(wrap);
-  }
+
+function fmtW(v){
+  if(typeof v!=='number'||!Number.isFinite(v)) return '—';
+  return new Intl.NumberFormat('nl-NL',{maximumFractionDigits:0}).format(Math.round(v))+' W';
 }
+function fmtKwh(v){
+  if(typeof v!=='number'||!Number.isFinite(v)) return '—';
+  return new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v)+' kWh';
+}
+function fmtGas(v){
+  if(typeof v!=='number'||!Number.isFinite(v)) return '—';
+  return new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v)+' m³';
+}
+
 async function refresh(){
   try{
     const ids=await Homey.getDeviceIds();
-    if(!ids||!ids.length)throw new Error('Selecteer eerst de Chargee Sparky P1 Meter in de widgetinstellingen.');
-    const settings=await Homey.getSettings();
-    prices={electricity:Number(settings.electricity_price??.30),feedin:Number(settings.feedin_price??.15),gas:Number(settings.gas_price??1)};
-    const qs=new URLSearchParams({deviceId:ids[0],period,electricityPrice:prices.electricity,feedinPrice:prices.feedin,gasPrice:prices.gas});
+    if(!ids||!ids.length) throw new Error('Selecteer eerst de Chargee Sparky P1 Meter in de widgetinstellingen.');
+
+    const qs=new URLSearchParams({deviceId:ids[0]});
     const data=await Homey.api('GET','/?'+qs.toString());
-    if(data.error)throw new Error(data.error);
-    $('status').innerHTML=data.online?'● Online':'● Offline';$('status').className='status '+(data.online?'':'off');
-    const p=Math.max(0,Number(data.now.powerW)||0),r=Math.max(0,Number(data.now.returnedW)||0);
-    const importing=p>0;const exporting=r>0;
-    $('heroValue').textContent=fmt(importing?p:r,0)+' W';
-    $('heroText').textContent=importing?'U gebruikt nu stroom van het net':exporting?'U levert nu stroom terug aan het net':'Geen actieve netstroom';
-    $('importPill').textContent='⚡ Netafname '+fmt(p,0)+' W';$('exportPill').textContent='☀️ Teruglevering '+fmt(r,0)+' W';
-    $('power').textContent=fmt(p,0)+' W';$('returned').textContent=fmt(r,0)+' W';$('gasMeter').textContent=data.now.gasM3==null?'—':fmt(data.now.gasM3,3)+' m³';
-    const s=data.summary||{};
-    $('sumImport').textContent=fmt(s.importKwh,2)+' kWh';$('sumExport').textContent=fmt(s.exportKwh,2)+' kWh';$('sumGas').textContent=fmt(s.gasM3,3)+' m³';
-    $('sumImportCost').textContent='geschat '+euro(s.importKwh*prices.electricity);
-    $('sumExportValue').textContent='vergoeding '+euro(s.exportKwh*prices.feedin);
-    $('sumGasCost').textContent='geschat '+euro(s.gasM3*prices.gas);
-    const netCost=(s.importKwh*prices.electricity)-(s.exportKwh*prices.feedin)+(s.gasM3*prices.gas);
-    $('cost').textContent=euro(netCost);
-    $('history').textContent=data.historyDays>0?fmt(data.historyDays,1)+' d':'nieuw';
-    renderBars($('electricChart'),data.chart||[],'electric');renderBars($('gasChart'),data.chart||[],'gas');
-    $('updated').textContent='Bijgewerkt '+new Date(data.generatedAt).toLocaleTimeString('nl-NL')+' · '+data.historyPoints+' meetpunten opgeslagen';
+    if(data.error) throw new Error(data.error);
+
+    $('status').textContent=data.online?'● Online':'● Offline';
+    $('status').className=data.online?'status':'status off';
+
+    const p=data.now.powerW, r=data.now.returnedW;
+    if(data.status==='import'){
+      $('heroValue').textContent=fmtW(p);
+      $('heroText').textContent=data.statusText;
+    }else if(data.status==='export'){
+      $('heroValue').textContent=fmtW(r);
+      $('heroText').textContent=data.statusText;
+    }else{
+      $('heroValue').textContent='0 W';
+      $('heroText').textContent=data.statusText;
+    }
+
+    $('importPill').textContent=fmtW(p);
+    $('exportPill').textContent=fmtW(r);
+    $('power').textContent=fmtW(p);
+    $('returned').textContent=fmtW(r);
+    $('meter').textContent=fmtKwh(data.now.meterKwh);
+    $('meterReturned').textContent=fmtKwh(data.now.returnedKwh);
+    $('gas').textContent=fmtGas(data.now.gasM3);
+
+    $('updated').textContent='Bijgewerkt '+new Date(data.generatedAt).toLocaleTimeString('nl-NL');
     Homey.ready();
-  }catch(e){$('status').textContent='● Fout';$('status').className='status off';$('heroText').textContent=e.message;Homey.ready();}
+  }catch(e){
+    $('status').textContent='● Fout';
+    $('status').className='status off';
+    $('heroValue').textContent='—';
+    $('heroText').innerHTML='<span class="error">'+String(e.message||e)+'</span>';
+    Homey.ready();
+  }
 }
-document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');period=btn.dataset.period;refresh()}));
-refresh();timer=setInterval(refresh,30000);
+
+async function init(){
+  await refresh();
+  clearInterval(refreshTimer);
+  refreshTimer=setInterval(refresh,15000);
+}
+init();
 </script>
 </body>
 </html>
