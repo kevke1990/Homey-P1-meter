@@ -1,12 +1,12 @@
-CHARGEE SPARKY v1.1.7
+CHARGEE SPARKY v1.2.1
 
-FIX: The P1 driver is explicitly present in the generated manifest.
-The driver id is p1_dongle and pairing uses Homey's list_devices/add_devices templates.
+Fix: driver images required by Homey publish validation are included:
+- small 75x75
+- large 500x500
+- xlarge 1000x1000
 
-After replacing the project:
+driver.compose.json contains the matching images paths.
+
+Run:
   homey app validate
   homey app run
-
-Then in Homey:
-  Devices -> + -> Apps -> Chargee Sparky / Generic P1 Meter
-  Select "Chargee Sparky P1 Meter"

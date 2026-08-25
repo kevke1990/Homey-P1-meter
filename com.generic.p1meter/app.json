@@ -1,6 +1,6 @@
 {
   "id": "com.generic.p1meter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -135,7 +135,12 @@
           "id": "add_devices",
           "template": "add_devices"
         }
-      ]
+      ],
+      "images": {
+        "small": "/drivers/p1_dongle/assets/images/small.png",
+        "large": "/drivers/p1_dongle/assets/images/large.png",
+        "xlarge": "/drivers/p1_dongle/assets/images/xlarge.png"
+      }
     }
   ]
 }

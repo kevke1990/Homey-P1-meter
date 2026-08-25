@@ -53,5 +53,10 @@
   ],
   "connectivity": [
     "lan"
-  ]
+  ],
+  "images": {
+    "small": "/drivers/p1_dongle/assets/images/small.png",
+    "large": "/drivers/p1_dongle/assets/images/large.png",
+    "xlarge": "/drivers/p1_dongle/assets/images/xlarge.png"
+  }
 }
