@@ -31,6 +31,21 @@ class P1DongleDevice extends Homey.Device {
     this.lastMeterWriteAt = 0;
     this.firstTelegramProcessed = false;
 
+    // Migrate already-paired devices to the two explicitly defined custom
+    // realtime capabilities. The capabilities are declared in
+    // .homeycompose/capabilities, so addCapability is valid here.
+    // Do not add them repeatedly on every init.
+    for (const capability of ['p1_grid_import_power', 'p1_grid_export_power']) {
+      try {
+        if (!this.hasCapability(capability)) {
+          this.log(`Custom capability toevoegen: ${capability}`);
+          await this.addCapability(capability);
+        }
+      } catch (err) {
+        this.error(`Kon custom capability ${capability} niet toevoegen:`, err);
+      }
+    }
+
     // Make sure the device uses Homey's normal cumulative energy model.
     // The same configuration is present in driver.compose.json for newly paired devices.
     try {
@@ -226,6 +241,18 @@ class P1DongleDevice extends Homey.Device {
         this.lastReturnedPowerWriteAt = now;
         this.lastValues['measure_power.returned'] = returnedW;
         this.writeCapability('measure_power.returned', returnedW);
+      }
+
+      // Dedicated realtime values for the Homey sensor UI and Insights.
+      // These mirror the standard measure_* values; no new parsing is involved.
+      if (powerW !== null && this.lastValues.p1_grid_import_power !== powerW) {
+        this.lastValues.p1_grid_import_power = powerW;
+        this.writeCapability('p1_grid_import_power', powerW);
+      }
+
+      if (returnedW !== null && this.lastValues.p1_grid_export_power !== returnedW) {
+        this.lastValues.p1_grid_export_power = returnedW;
+        this.writeCapability('p1_grid_export_power', returnedW);
       }
 
       // Cumulative values are deliberately throttled to avoid flooding Homey.

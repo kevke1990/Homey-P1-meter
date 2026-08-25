@@ -1,6 +1,6 @@
 {
   "id": "com.generic.p1meter",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -98,7 +98,9 @@
         "measure_power.returned",
         "meter_power",
         "meter_power.returned",
-        "meter_gas"
+        "meter_gas",
+        "p1_grid_import_power",
+        "p1_grid_export_power"
       ],
       "settings": [
         {
@@ -176,6 +178,20 @@
             "en": "Gas meter",
             "nl": "Gasmeter"
           }
+        },
+        "p1_grid_import_power": {
+          "title": {
+            "en": "Current consumption",
+            "nl": "Huidig verbruik"
+          },
+          "preventInsights": false
+        },
+        "p1_grid_export_power": {
+          "title": {
+            "en": "Current feed-in",
+            "nl": "Huidige teruglevering"
+          },
+          "preventInsights": false
         }
       }
     }
@@ -185,5 +201,41 @@
     "large": "/assets/images/large.png",
     "xlarge": "/assets/images/xlarge.png"
   },
-  "brandColor": "#62A8FF"
+  "brandColor": "#62A8FF",
+  "capabilities": {
+    "p1_grid_import_power": {
+      "type": "number",
+      "title": {
+        "en": "Grid import power",
+        "nl": "Huidig verbruik"
+      },
+      "getable": true,
+      "setable": false,
+      "units": {
+        "en": "W",
+        "nl": "W"
+      },
+      "min": 0,
+      "step": 1,
+      "decimals": 0,
+      "uiComponent": "sensor"
+    },
+    "p1_grid_export_power": {
+      "type": "number",
+      "title": {
+        "en": "Grid export power",
+        "nl": "Huidige teruglevering"
+      },
+      "getable": true,
+      "setable": false,
+      "units": {
+        "en": "W",
+        "nl": "W"
+      },
+      "min": 0,
+      "step": 1,
+      "decimals": 0,
+      "uiComponent": "sensor"
+    }
+  }
 }

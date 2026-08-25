@@ -9,7 +9,9 @@
     "measure_power.returned",
     "meter_power",
     "meter_power.returned",
-    "meter_gas"
+    "meter_gas",
+    "p1_grid_import_power",
+    "p1_grid_export_power"
   ],
   "settings": [
     {
@@ -97,6 +99,20 @@
       "title": {
         "en": "Gas meter",
         "nl": "Gasmeter"
+      },
+      "preventInsights": false
+    },
+    "p1_grid_import_power": {
+      "title": {
+        "en": "Current consumption",
+        "nl": "Huidig verbruik"
+      },
+      "preventInsights": false
+    },
+    "p1_grid_export_power": {
+      "title": {
+        "en": "Current feed-in",
+        "nl": "Huidige teruglevering"
       },
       "preventInsights": false
     }
