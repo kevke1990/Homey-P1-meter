@@ -11,6 +11,24 @@ class P1DongleDevice extends Homey.Device {
     this.reconnectTimer = null;
     this.destroyed = false;
 
+    // DSMR can deliver a telegram every second. Do not push every field into
+    // Homey on every telegram: that creates unnecessary Homey/Insights work.
+    this.lastCapabilityValues = Object.create(null);
+    this.lastPowerUpdateAt = 0;
+    this.lastReturnedPowerUpdateAt = 0;
+    this.lastMeterUpdateAt = 0;
+    this.lastGasUpdateAt = 0;
+
+    // Keep the live values in memory for the widget/API.
+    this.liveData = {
+      powerW: null,
+      returnedW: null,
+      meterKwh: null,
+      returnedKwh: null,
+      gasM3: null,
+      updatedAt: 0,
+    };
+
     // Explicitly apply the Homey Energy configuration to the paired device.
     // The driver manifest contains the same configuration for newly paired devices.
     // This makes upgrades work without requiring the user to re-pair the meter.
@@ -111,17 +129,12 @@ class P1DongleDevice extends Homey.Device {
         return Number.isFinite(value) ? value : null;
       };
 
+      const now = Date.now();
+      const POWER_INTERVAL = 2000;
+      const METER_INTERVAL = 10000;
+
       const importKw = getValue('1-0:1\\.7\\.0');
       const exportKw = getValue('1-0:2\\.7\\.0');
-
-      if (importKw !== null) {
-        this.setCapabilityValue('measure_power', Math.max(0, Math.round(importKw * 1000)))
-          .catch(err => this.error('measure_power:', err));
-      }
-      if (exportKw !== null) {
-        this.setCapabilityValue('measure_power.returned', Math.max(0, Math.round(exportKw * 1000)))
-          .catch(err => this.error('measure_power.returned:', err));
-      }
 
       const t1In = getValue('1-0:1\\.8\\.1');
       const t2In = getValue('1-0:1\\.8\\.2');
@@ -131,23 +144,69 @@ class P1DongleDevice extends Homey.Device {
       const totalIn = t1In !== null && t2In !== null ? t1In + t2In : null;
       const totalOut = t1Out !== null && t2Out !== null ? t1Out + t2Out : null;
 
-      if (totalIn !== null) {
-        this.setCapabilityValue('meter_power', totalIn)
-          .catch(err => this.error('meter_power:', err));
-      }
-      if (totalOut !== null) {
-        this.setCapabilityValue('meter_power.returned', totalOut)
-          .catch(err => this.error('meter_power.returned:', err));
-      }
-
       const gasMatch = telegram.match(/0-[0-9]:24\\.2\\.1\\([^)]*\\)\\(([^)]+)\\)/);
       const gas = gasMatch ? parseFloat(gasMatch[1]) : null;
-      if (gas !== null && Number.isFinite(gas)) {
-        this.setCapabilityValue('meter_gas', gas)
-          .catch(err => this.error('meter_gas:', err));
+
+      const powerW = importKw !== null ? Math.max(0, Math.round(importKw * 1000)) : null;
+      const returnedW = exportKw !== null ? Math.max(0, Math.round(exportKw * 1000)) : null;
+
+      // Always keep the in-memory live state current. The widget can use
+      // capability values, while this state prevents unnecessary Homey writes.
+      if (powerW !== null) this.liveData.powerW = powerW;
+      if (returnedW !== null) this.liveData.returnedW = returnedW;
+      if (totalIn !== null) this.liveData.meterKwh = totalIn;
+      if (totalOut !== null) this.liveData.returnedKwh = totalOut;
+      if (gas !== null && Number.isFinite(gas)) this.liveData.gasM3 = gas;
+      this.liveData.updatedAt = now;
+
+      // Live power: update at most every 2 seconds and only when the value changed.
+      if (powerW !== null &&
+          (now - this.lastPowerUpdateAt >= POWER_INTERVAL) &&
+          this.lastCapabilityValues.measure_power !== powerW) {
+        this.lastPowerUpdateAt = now;
+        this.lastCapabilityValues.measure_power = powerW;
+        this.setCapabilityValue('measure_power', powerW)
+          .catch(err => this.error('measure_power:', err));
       }
 
-      this.setAvailable().catch(err => this.error('setAvailable:', err));
+      if (returnedW !== null &&
+          (now - this.lastReturnedPowerUpdateAt >= POWER_INTERVAL) &&
+          this.lastCapabilityValues['measure_power.returned'] !== returnedW) {
+        this.lastReturnedPowerUpdateAt = now;
+        this.lastCapabilityValues['measure_power.returned'] = returnedW;
+        this.setCapabilityValue('measure_power.returned', returnedW)
+          .catch(err => this.error('measure_power.returned:', err));
+      }
+
+      // Cumulative meters are only written periodically. Homey Insights does
+      // not benefit from receiving identical values every second.
+      if (now - this.lastMeterUpdateAt >= METER_INTERVAL) {
+        this.lastMeterUpdateAt = now;
+
+        if (totalIn !== null &&
+            this.lastCapabilityValues.meter_power !== totalIn) {
+          this.lastCapabilityValues.meter_power = totalIn;
+          this.setCapabilityValue('meter_power', totalIn)
+            .catch(err => this.error('meter_power:', err));
+        }
+
+        if (totalOut !== null &&
+            this.lastCapabilityValues['meter_power.returned'] !== totalOut) {
+          this.lastCapabilityValues['meter_power.returned'] = totalOut;
+          this.setCapabilityValue('meter_power.returned', totalOut)
+            .catch(err => this.error('meter_power.returned:', err));
+        }
+
+        if (gas !== null && Number.isFinite(gas) &&
+            this.lastCapabilityValues.meter_gas !== gas) {
+          this.lastCapabilityValues.meter_gas = gas;
+          this.setCapabilityValue('meter_gas', gas)
+            .catch(err => this.error('meter_gas:', err));
+        }
+      }
+
+      // IMPORTANT: do NOT call setAvailable() on every telegram.
+      // Availability is set when the TCP connection succeeds and when it fails.
     } catch (err) {
       this.error('Fout bij parsen DSMR telegram:', err);
     }

@@ -1,18 +1,30 @@
-CHARGEE SPARKY v1.3.2
+CHARGEE SPARKY v1.3.3
 
-FIX FOR HOMEY PUBLISH VALIDATION
-Added the required app-level brandColor:
-  brandColor: #62A8FF
+PERFORMANCE FIX
 
-This version retains:
-- Homey Insights / Energy cumulative meter configuration
-- no custom history database
-- fast live dashboard widget
-- required app Store images
-- required driver images
+The P1 driver receives DSMR telegrams very frequently. v1.3.2 was still
+calling Homey's capability API for every telegram and was also calling
+setAvailable() for every telegram. That can overload/queue Homey work and
+make widgets appear to hang for 20-30 seconds.
 
-Validate:
+v1.3.3:
+- setAvailable() is only called on TCP connect/error/close
+- live power capabilities are throttled to max once every 2 seconds
+- cumulative meters are written max once every 10 seconds
+- unchanged values are not written again
+- widget API caches the selected device object
+- widget calls Homey.ready() immediately, so the dashboard renders instantly
+- widget refreshes every 5 seconds
+
+Homey Insights / Energy remains the historical source.
+
+VALIDATE:
   homey app validate --level publish
 
-Run:
+RUN:
   homey app run
+
+For a physical Homey Pro, prefer:
+  homey app run --remote
+when supported by your setup, because this tests on the actual Homey rather
+than only inside the local runner environment.

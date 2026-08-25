@@ -10,6 +10,10 @@
  * measuring device.
  */
 
+let cachedDriver = null;
+let cachedDevice = null;
+let cachedDeviceId = null;
+
 module.exports = {
   async getData({ homey, query }) {
     const deviceId = query?.deviceId;
@@ -17,16 +21,22 @@ module.exports = {
       return { error: 'Geen Chargee Sparky apparaat geselecteerd.' };
     }
 
-    // Fast path: get the already-loaded driver and device instance.
-    const driver = homey.drivers.getDriver('p1_dongle');
-    const devices = driver.getDevices();
-    const device = devices.find(d => {
-      try {
-        return d.getId() === deviceId;
-      } catch (err) {
-        return d.id === deviceId;
-      }
-    });
+    // Cache the driver/device object. Widget refreshes should not repeatedly
+    // enumerate the driver when the selected device has not changed.
+    if (!cachedDevice || cachedDeviceId !== deviceId) {
+      cachedDriver = cachedDriver || homey.drivers.getDriver('p1_dongle');
+      const devices = cachedDriver.getDevices();
+      cachedDevice = devices.find(d => {
+        try {
+          return d.getId() === deviceId;
+        } catch (err) {
+          return d.id === deviceId;
+        }
+      }) || null;
+      cachedDeviceId = cachedDevice ? deviceId : null;
+    }
+
+    const device = cachedDevice;
 
     if (!device) {
       return { error: 'P1-meter niet gevonden.' };

@@ -183,20 +183,22 @@ async function refresh(){
     $('gas').textContent=fmtGas(data.now.gasM3);
 
     $('updated').textContent='Bijgewerkt '+new Date(data.generatedAt).toLocaleTimeString('nl-NL');
-    Homey.ready();
   }catch(e){
     $('status').textContent='● Fout';
     $('status').className='status off';
     $('heroValue').textContent='—';
     $('heroText').innerHTML='<span class="error">'+String(e.message||e)+'</span>';
-    Homey.ready();
   }
 }
 
 async function init(){
-  await refresh();
+  // Do not keep Homey's widget loading screen open while waiting for the
+  // first API call. Render the dashboard immediately, then fill in data.
+  Homey.ready();
+
+  refresh();
   clearInterval(refreshTimer);
-  refreshTimer=setInterval(refresh,15000);
+  refreshTimer=setInterval(refresh,5000);
 }
 init();
 </script>
